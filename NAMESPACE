@@ -2,7 +2,7 @@
 
 exportPattern("^[[:alpha:]]+")
 import(dplyr)
-importFrom("stats", "approx", "cut", "glm", "lm", "predict", "quantile", "smooth.spline", "spline", "var", "dist", "cor", "as.formula", "complete.cases")
+importFrom("stats", "approx", "glm", "lm", "predict", "quantile", "smooth.spline", "spline", "var", "dist", "cor", "as.formula", "complete.cases")
 importFrom("utils", "combn")
 
 # Export continuous EM functions
