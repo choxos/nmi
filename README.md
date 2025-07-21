@@ -1,159 +1,63 @@
-# Network Meta-Interpolation (NMI) Package
+# NMI Package: Network Meta-Interpolation
 
-[![R-CMD-check](https://github.com/username/nmi/workflows/R-CMD-check/badge.svg)](https://github.com/username/nmi/actions)
+[![R](https://img.shields.io/badge/R-%E2%89%A5%203.5.0-blue)](https://www.r-project.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-1.1.0-green)](https://github.com/choxos/nmi)
 
-An R package implementing Network Meta-Interpolation (NMI) methodology for addressing effect modification in network meta-analysis using subgroup analyses.
+A comprehensive R package implementing **Network Meta-Interpolation (NMI)** methodology for addressing effect modification in network meta-analysis using subgroup analyses.
+
+## 🆕 What's New in v1.1.0
+
+- 🎯 **Continuous Effect Modifier Support**: Handle age, BMI, continuous biomarkers
+- 📈 **Multiple Interpolation Methods**: Linear, spline, and adaptive discretization  
+- 🔍 **Automatic EM Type Detection**: Smart detection of binary vs continuous variables
+- ⚡ **Flexible API**: Seamless integration with existing NMI workflow
+- ✅ **Comprehensive Testing**: Full validation suite with real-world examples
 
 ## Overview
 
-Network Meta-Interpolation (NMI) is a method for indirect treatment comparison that addresses effect modification when combining individual patient data (IPD) and aggregate data (AgD). The methodology was developed by Harari et al. (2023) and allows researchers to:
+The NMI package enables researchers to perform network meta-analysis while accounting for effect modification by combining:
 
-- Perform network meta-analysis at specific covariate levels
-- Handle effect modification in mixed IPD/AgD networks
-- Support multiple outcome types (binary, continuous, count)
-- Use Bayesian inference with Stan for robust statistical analysis
+- **Individual Patient Data (IPD)**: Rich, patient-level information
+- **Aggregate Data (AgD)**: Study-level summaries from literature
+- **Advanced Interpolation**: Estimate treatment effects at target covariate values
 
-## Features
+### Key Features
 
-- **Flexible outcome types**: Binary, continuous, and count outcomes
-- **Effect modification handling**: Addresses differences in treatment effects across patient subgroups
-- **BLUP imputation**: Uses Best Linear Unbiased Predictor for missing covariate values
-- **Multiple analysis methods**: NMA, NMR, ML-NMR, and NMI
-- **Modern Bayesian framework**: cmdstanr integration for fast, efficient Stan sampling
-- **Professional reporting**: Automated HTML report generation with organized file structure
-- **Comprehensive visualization**: Diagnostic plots, forest plots, and interactive tables
-- **Convergence diagnostics**: Detailed MCMC diagnostics with R-hat and effective sample size
+| Feature | Binary EMs | Continuous EMs | Status |
+|---------|------------|----------------|--------|
+| **Basic Interpolation** | ✅ | ✅ | Available |
+| **Linear Methods** | ✅ | ✅ | Available |
+| **Spline Methods** | ➖ | ✅ | New in v1.1.0 |
+| **Auto-Detection** | ✅ | ✅ | New in v1.1.0 |
+| **Mixed EM Types** | ✅ | 🔄 | Coming in v1.2.0 |
+| **Multiple Continuous** | ➖ | 🔄 | Coming in v1.2.0 |
 
 ## Installation
 
-```r
-# Install from source
-devtools::install_local("path/to/nmi")
+### Standard Installation
 
-# Load the package
-library(nmi)
+```r
+# Install from GitHub
+devtools::install_github("choxos/nmi")
 ```
 
-### Prerequisites
+### With Bayesian Features
 
-The package uses **cmdstanr** for Bayesian inference. Make sure you have it installed:
+For full Bayesian functionality including Stan integration:
 
 ```r
-# Install cmdstanr (if not already installed)
+# First install cmdstanr
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+cmdstanr::install_cmdstan()
 
-# Install CmdStan (if not already installed)
-library(cmdstanr)
-install_cmdstan()
+# Then install NMI
+devtools::install_github("choxos/nmi", build_vignettes = TRUE)
 ```
-
-## New Features (v1.0.0)
-
-### Enhanced Bayesian Analysis with cmdstanr
-
-- **Faster sampling**: cmdstanr provides improved performance over rstan
-- **Better diagnostics**: Enhanced convergence diagnostics and warnings
-- **Parallel processing**: Automatic parallel chain execution
-- **Memory efficiency**: Reduced memory usage for large models
-
-### Professional HTML Reporting
-
-- **Automated report generation**: One-function HTML report creation
-- **Organized file structure**: Reports saved with timestamps in structured directories
-- **Interactive elements**: Dynamic tables and navigation
-- **Professional styling**: Publication-ready reports with modern design
 
 ## Quick Start
 
-### Interactive Shiny App (Recommended for Beginners)
-
-```r
-library(nmi)
-
-# Launch the interactive web application
-launch_nmi_app()
-```
-
-The Shiny app provides a user-friendly interface with:
-- Example datasets for learning
-- Step-by-step analysis workflow
-- Interactive visualizations
-
-### Complete NMI Analysis with HTML Reporting
-
-For programmatic analysis with professional reporting:
-
-```r
-library(nmi)
-
-# Load your data (IPD and AgD)
-# ipd_data <- your_individual_patient_data
-# agd_data <- your_aggregate_data
-
-# Run complete NMI analysis with cmdstanr
-nmi_results <- nmi_full_analysis(
-  IPD = ipd_data,
-  AgD = agd_data,
-  x_vect = c(0.6, 0.4),  # Target effect modifier values
-  AgD_EM_cols = c("X1", "X2"),
-  IPD_EM_cols = c("X1", "X2"),
-  IPD_treatment_col = "treatment",
-  AgD_treatment_cols = c("Trt1", "Trt2"),
-  IPD_outcome_col = "outcome",
-  AgD_TE_col = "TE",
-  AgD_SE_col = "SE",
-  AgD_study_col = "Study",
-  study_sample_sizes = c(300, 300, 300, 300, 300, 300),
-  outcome_type = "binary",
-  mcmc_settings = list(n_iter = 2000, n_warmup = 1000, n_chains = 2)
-)
-
-# Generate professional HTML report
-report_file <- generate_nmi_html_report(
-  nmi_results = nmi_results,
-  study_name = "MyStudy",
-  outcome = "Primary_Efficacy",
-  report_title = "NMI Analysis Report",
-  author_name = "Your Name",
-  organization = "Your Institution"
-)
-
-# Report saved to: reports/MyStudy_Primary_Efficacy_YYYYMMDD/MyStudy_Primary_Efficacy_YYYYMMDD_HHMMSS.html
-```
-
-### Report Organization
-
-Reports are automatically organized with timestamps:
-```
-reports/
-└── MyStudy_Primary_Efficacy_20250120/
-    └── MyStudy_Primary_Efficacy_20250120_143022.html
-```
-
-This structure:
-- Prevents file overwrites
-- Organizes by study and outcome
-- Maintains analysis history
-- Supports multiple runs per day
-
-### Example with Synthetic Data
-
-A complete working example is available:
-
-```r
-# Run the cmdstanr + HTML reporting example
-source(system.file("examples", "nmi_cmdstan_example.R", package = "nmi"))
-```
-
-This example demonstrates:
-- Synthetic data generation for testing
-- Complete NMI workflow with cmdstanr
-- HTML report generation with file organization
-- Comparison between NMI and standard NMA
-- Convergence diagnostics and result interpretation
-
-### Programmatic Usage
+### Binary Effect Modifiers (Traditional)
 
 ```r
 library(nmi)
@@ -162,185 +66,236 @@ library(nmi)
 IPD <- load_example_ipd()
 AgD <- load_example_agd()
 
-# Define analysis parameters
-x_vect <- c(0.675, 0.475)  # Effect modifier levels for comparison
-AgD_EM_cols <- c('x1', 'x2')
-IPD_EM_cols <- c('x1', 'x2')
+# Traditional binary EM analysis
+result <- nmi_full_analysis(IPD, AgD)
 
-# Perform NMI interpolation
-NMI_result <- NMI_interpolation(
-  IPD = IPD,
-  AgD = AgD,
-  x_vect = x_vect,
-  AgD_EM_cols = AgD_EM_cols,
-  IPD_EM_cols = IPD_EM_cols,
-  Study_col = 'Study',
-  samp_sizes = rep(600, 6),
-  AgD_Trt_cols = c('Trt1', 'Trt2'),
-  TE_col = 'TE',
-  SE_col = 'se',
-  IPD_Trt_col = 'Tr',
-  outcome_col = 'Y',
-  outcome_type = "binary"
-)
-
-# Run network meta-analysis
-NMI_fit <- NMA_run(
-  dat = NMI_result$Final,
-  N_chains = 3,
-  N_iter = 1500,
-  burnin = 500,
-  outcome_type = "binary"
-)
-
-# Summarize results
-NMI_summary <- NMA_NMI_summary(NMI_fit)
-print(NMI_summary)
-
-# Create diagnostic plot
-diagnostic_plot <- NMI_diagnostic_plot(NMI_result)
-print(diagnostic_plot)
+# View results
+result_table(result)
+result_forest_plot(result)
 ```
 
-## Main Functions
-
-### Core NMI Functions
-
-- `NMI_interpolation()`: Main function for NMI interpolation
-- `BLUP_impute()`: Impute missing covariate values using BLUP
-- `GLMLOGIT()`: Transform IPD into subgroup analyses
-
-### Analysis Functions
-
-- `NMA_run()`: Run network meta-analysis using Stan
-- `NMA_Meta_Reg_run_2D()`: Run network meta-regression with 2 effect modifiers
-- `NMA_Meta_Reg_run_3D()`: Run network meta-regression with 3 effect modifiers
-- `ML_NMR_Run_2D()`: Run multilevel network meta-regression with 2 effect modifiers
-- `ML_NMR_Run_3D()`: Run multilevel network meta-regression with 3 effect modifiers
-
-### Summary Functions
-
-- `NMA_NMI_summary()`: Summarize NMA results
-- `NMA_Metareg_summary_2D()`: Summarize NMR results (2D)
-- `NMA_Metareg_summary_3D()`: Summarize NMR results (3D)
-- `ML_NMR_summary_2D()`: Summarize ML-NMR results (2D)
-- `ML_NMR_summary_3D()`: Summarize ML-NMR results (3D)
-
-### Visualization Functions
-
-- `NMI_diagnostic_plot()`: Create diagnostic plot for interpolation quality
-- `NMI_diagnostic_plotly()`: Create interactive diagnostic plot
-- `result_forest_plot()`: Create forest plot comparing methods
-- `result_table()`: Format results table
-- `display_result_table()`: Display formatted results table
-
-### Shiny Application
-
-- `launch_nmi_app()`: Launch the interactive Shiny application
-
-## Data Requirements
-
-### Individual Patient Data (IPD)
-
-The IPD should contain:
-- Treatment assignment column
-- Outcome column
-- Effect modifier columns
-- Study identifier
-
-### Aggregate Data (AgD)
-
-The AgD should contain:
-- Treatment comparison columns
-- Effect modifier summary statistics
-- Treatment effect estimates
-- Standard errors
-- Study identifier
-
-## Outcome Types
-
-The package supports three outcome types:
-
-1. **Binary outcomes** (`outcome_type = "binary"`)
-   - Uses logistic regression
-   - Requires binary outcome variable (0/1)
-
-2. **Continuous outcomes** (`outcome_type = "continuous"`)
-   - Uses linear regression
-   - Requires continuous outcome variable
-
-3. **Count outcomes** (`outcome_type = "count"`)
-   - Uses Poisson regression
-   - Requires count outcome variable
-
-## Stan Models
-
-The package uses Stan for Bayesian inference. All models are built-in and automatically compiled when needed. The Stan models support:
-
-- Fixed effects network meta-analysis
-- Network meta-regression with multiple covariates
-- Flexible prior specifications
-- Efficient sampling algorithms
-
-## Examples
-
-See the package vignette for detailed examples:
+### Continuous Effect Modifiers (New!)
 
 ```r
-vignette("nmi_introduction", package = "nmi")
+library(nmi)
+
+# Create data with age as continuous EM
+IPD <- data.frame(
+  Study = rep("IPD_Study", 200),
+  age = rnorm(200, mean = 60, sd = 10),  # Continuous age
+  treatment = sample(c("A", "B"), 200, replace = TRUE),
+  outcome = rbinom(200, 1, 0.4)
+)
+
+AgD <- data.frame(
+  Study = paste0("Study_", 1:5),
+  age_mean = c(45, 55, 65, 70, 75),
+  TE = c(0.1, 0.3, 0.5, 0.4, 0.2),
+  se = c(0.12, 0.10, 0.11, 0.13, 0.15)
+)
+
+# Continuous EM analysis
+target_age <- 62.5
+result <- NMI_interpolation_continuous(
+  IPD = IPD,
+  AgD = AgD,
+  x_vect = c(age = target_age),
+  AgD_EM_cols = "age_mean",
+  IPD_EM_cols = "age",
+  interpolation_method = "linear"  # or "spline"
+)
+
+print(result$Final)
 ```
 
-## Dependencies
+## Core Functions
 
-- **R (>= 3.5.0)**
-- **Stan ecosystem**: rstan, multinma
-- **Data manipulation**: dplyr, tibble, tidyr
-- **Visualization**: ggplot2, plotly, lemon
-- **Tables**: kableExtra, reshape2
-- **Statistics**: broom, broom.mixed
+### Data Loading & Preparation
+- `load_example_ipd()` - Load example individual patient data
+- `load_example_agd()` - Load example aggregate data
+- `GLMLOGIT()` - Convert IPD to subgroup analyses
+- `BLUP_impute()` - Impute missing effect modifier data
 
-## References
+### Analysis Functions
+- `nmi_full_analysis()` - Complete NMI analysis workflow
+- `NMI_interpolation()` - Core binary EM interpolation
+- `NMI_interpolation_continuous()` - **New!** Continuous EM interpolation
+- `NMA_run()` - Network meta-analysis
+- `nmi_standard_nma()` - Standard NMA without interpolation
 
-Harari, O., Abrams, K. R., Ades, A. E., Sutton, A. J., & Cooper, N. J. (2023). Network meta‐interpolation: Effect modification adjustment in network meta‐analysis using subgroup analyses. *Journal of the Royal Statistical Society: Series A*, 186(2), 643-670.
+### Continuous EM Methods (New!)
+- `detect_em_types()` - Automatic EM type detection
+- `linear_interpolation()` - Linear interpolation for continuous EMs  
+- `spline_interpolation()` - Spline-based interpolation
+- `optimize_discretization()` - Adaptive discretization
 
-## License
+### Visualization & Reporting
+- `result_table()` - Formatted results table
+- `result_forest_plot()` - Forest plot visualization
+- `NMI_diagnostic_plot()` - Model diagnostics
+- `generate_nmi_html_report()` - Comprehensive HTML reports
 
-This package is licensed under the MIT License. See the LICENSE file for details.
+### Interactive Analysis
+- `launch_nmi_app()` - Shiny web application
+- `nmi_help()` - Quick help and examples
+
+## Method Comparison
+
+| Method | Best For | Advantages | Limitations |
+|--------|----------|------------|-------------|
+| **Linear** | Linear relationships, few studies | Simple, robust, fast | Limited flexibility |
+| **Spline** | Non-linear relationships | Flexible, smooth curves | Needs ≥3 studies |
+| **Discretization** | Interpretability | Compatible with binary methods | Information loss |
+
+## Example Workflows
+
+### 1. Automatic Method Selection
+
+```r
+# Let NMI automatically detect EM types and choose methods
+em_types <- detect_em_types(IPD, c("age", "sex", "biomarker"))
+print(em_types)
+# age: continuous, sex: binary, biomarker: continuous
+```
+
+### 2. Method Comparison
+
+```r
+# Compare interpolation methods
+linear_result <- linear_interpolation(AgD, c(age_mean = 65), "age_mean")
+spline_result <- spline_interpolation(AgD, c(age_mean = 65), "age_mean")
+
+comparison <- data.frame(
+  Method = c("Linear", "Spline"),
+  TE = c(linear_result$te, spline_result$te),
+  SE = c(linear_result$se, spline_result$se)
+)
+```
+
+### 3. Adaptive Discretization
+
+```r
+# Optimize continuous variable binning
+discretization <- optimize_discretization(
+  continuous_data = IPD$age,
+  method = "equal_freq",
+  max_bins = 5
+)
+print(discretization$bin_counts)
+```
+
+## Documentation
+
+### Vignettes
+
+- **Getting Started**: `vignette("getting_started", package = "nmi")`
+- **Continuous EMs**: `vignette("continuous_effect_modifiers", package = "nmi")` 
+- **Advanced Workflows**: `vignette("advanced_workflows", package = "nmi")`
+- **HTML Reporting**: `vignette("html_reporting", package = "nmi")`
+- **Stan Integration**: `vignette("cmdstanr_integration", package = "nmi")`
+
+### Quick Access
+
+```r
+# Open vignettes
+open_nmi_vignette()
+
+# Package help
+help(package = "nmi")
+
+# Quick examples
+nmi_help()
+```
+
+## Methodology
+
+The NMI methodology addresses effect modification in network meta-analysis by:
+
+1. **Data Integration**: Combining IPD and AgD sources
+2. **Effect Modifier Modeling**: Handling binary, categorical, and continuous covariates
+3. **Interpolation**: Estimating effects at target covariate values
+4. **Uncertainty Quantification**: Proper propagation of estimation uncertainty
+
+### Supported Effect Modifiers
+
+| Type | Examples | Methods Available |
+|------|----------|-------------------|
+| **Binary** | Sex (0/1), Treatment history | Standard NMI |
+| **Categorical** | Disease stage (1,2,3), Risk groups | Standard NMI |
+| **Continuous** | Age, BMI, biomarker levels | Linear, Spline, Discretization |
+
+## Performance & Scalability
+
+| Dataset Size | Recommended Method | Complexity |
+|--------------|-------------------|------------|
+| Small (≤5 studies) | Linear interpolation | O(n log n) |
+| Medium (5-20 studies) | Spline interpolation | O(n²) |
+| Large (>20 studies) | Linear or pre-filtering | O(n log n) |
+
+## Development Roadmap
+
+### Phase 2 (v1.2.0) - Mixed EM Types
+- Multiple continuous EMs support
+- Binary + continuous EM combinations
+- Advanced multivariate splines
+
+### Phase 3 (v1.3.0) - Network Extensions  
+- Disconnected network handling
+- Real-world data integration
+- Single-arm study inclusion
+
+### Phase 4 (v1.4.0) - Advanced Analytics
+- Machine learning imputation
+- Uncertainty quantification
+- Performance optimization
 
 ## Contributing
 
-We welcome contributions! Please see our contributing guidelines and code of conduct.
+We welcome contributions! Please see our [development roadmap](DEVELOPMENT_ROADMAP.md) and [feature proposals](FEATURE_PROPOSAL_CONTINUOUS_EM.md).
 
-## Getting Help
+### Development Workflow
 
-- Check the function documentation with `?function_name`
-- Browse the package vignette for examples
-- Report issues on the GitHub repository
+```r
+# 1. Clone repository
+git clone https://github.com/choxos/nmi.git
+
+# 2. Create feature branch
+git checkout -b feature/new-functionality
+
+# 3. Install development dependencies
+devtools::install_dev_deps()
+
+# 4. Run tests
+devtools::test()
+
+# 5. Submit pull request
+```
 
 ## Citation
 
-If you use this package in your research, please cite:
+### Package Citation
 
-```
-@Manual{nmi,
-  title = {nmi: Network Meta-Interpolation for Indirect Treatment Comparison},
-  author = {NMI Developer},
-  year = {2025},
-  note = {R package version 1.0.0},
-}
+```r
+citation("nmi")
 ```
 
-And the original methodology paper:
+**For the package:**
+> Sofi-Mahmudi, A. (2025). Network Meta-Interpolation (NMI) Package. R package version 1.1.0.
 
-```
-@article{harari2023network,
-  title={Network meta-interpolation: Effect modification adjustment in network meta-analysis using subgroup analyses},
-  author={Harari, Orit and Abrams, Keith R and Ades, AE and Sutton, Alex J and Cooper, Nicola J},
-  journal={Journal of the Royal Statistical Society: Series A},
-  volume={186},
-  number={2},
-  pages={643--670},
-  year={2023},
-  publisher={Oxford University Press}
-}
-```
+**For the methodology:**
+> Harari et al. (2023). Network meta-interpolation: Effect modification adjustment in network meta-analysis using subgroup analyses.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact & Support
+
+- **Author**: Ahmad Sofi-Mahmudi
+- **Email**: a.sofimahmudi@gmail.com  
+- **GitHub**: [https://github.com/choxos/nmi](https://github.com/choxos/nmi)
+- **Issues**: [Report bugs and request features](https://github.com/choxos/nmi/issues)
+
+---
+
+**🚀 Ready to get started?** Install the package and run `nmi_help()` for immediate guidance!

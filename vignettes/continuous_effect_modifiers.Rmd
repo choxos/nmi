@@ -1,0 +1,469 @@
+---
+title: "Continuous Effect Modifiers in NMI"
+author: "Ahmad Sofi-Mahmudi"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Continuous Effect Modifiers in NMI}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+is_check <- ("CheckExEnv" %in% search()) || any(c("_R_CHECK_TIMINGS_", "_R_CHECK_LICENSE_") %in% names(Sys.getenv()))
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = !is_check
+)
+```
+
+# Introduction
+
+The Network Meta-Interpolation (NMI) package has been extended to support **continuous effect modifiers**, moving beyond the original binary-only implementation. This advancement allows researchers to handle real-valued covariates like age, BMI, or biomarker levels in network meta-analysis.
+
+## What's New in v1.1.0+
+
+- 🎯 **Continuous Effect Modifier Support**: Handle age, BMI, continuous biomarkers
+- 📈 **Multiple Interpolation Methods**: Linear, spline, and adaptive discretization
+- 🔍 **Automatic EM Type Detection**: Smart detection of binary vs continuous variables
+- ⚡ **Flexible API**: Seamless integration with existing NMI workflow
+- ✅ **Comprehensive Testing**: Full validation suite with real-world examples
+
+## Key Advantages
+
+1. **No Information Loss**: Work directly with continuous data without forced discretization
+2. **Flexible Modeling**: Choose between linear, spline, or optimal discretization approaches
+3. **Robust Extrapolation Warnings**: Automatic detection of extrapolation scenarios
+4. **Future-Ready**: Foundation for mixed EM types and multivariate methods
+
+---
+
+# Core Concepts
+
+## Effect Modifier Types
+
+The NMI package now automatically detects three types of effect modifiers:
+
+- **Binary**: Two values (0,1) - traditional NMI approach
+- **Categorical**: Few discrete integer values (1,2,3,...)  
+- **Continuous**: Many unique values or non-integer data
+
+## Interpolation Methods
+
+### 1. Linear Interpolation
+- **Best for**: Smooth, approximately linear relationships
+- **Advantages**: Simple, robust, fast
+- **Use when**: Limited data points or linear EM-effect relationship
+
+### 2. Spline Interpolation  
+- **Best for**: Non-linear, smooth relationships
+- **Types**: Natural splines, cubic splines, smoothing splines
+- **Use when**: Sufficient data points (≥3) and non-linear relationships
+
+### 3. Adaptive Discretization
+- **Best for**: Hybrid approach maintaining interpretability
+- **Methods**: Equal frequency, equal width, outcome-optimized
+- **Use when**: Need to balance continuous modeling with discrete analysis
+
+---
+
+# Getting Started
+
+## Basic Example: Age as Continuous EM
+
+```{r basic_example}
+library(nmi)
+
+# Create example data with age as continuous effect modifier
+set.seed(2025)
+
+# Individual Patient Data
+IPD <- data.frame(
+  Study = rep("IPD_Study", 100),
+  age = rnorm(100, mean = 60, sd = 10),
+  sex = rbinom(100, 1, 0.5),
+  treatment = sample(c("A", "B"), 100, replace = TRUE),
+  outcome = rbinom(100, 1, 0.4)
+)
+
+# Aggregate Data with different age profiles
+AgD <- data.frame(
+  Study = paste0("Study_", 1:5),
+  age_mean = c(45, 55, 65, 70, 75),
+  TE = c(0.1, 0.3, 0.5, 0.4, 0.2),
+  se = c(0.12, 0.10, 0.11, 0.13, 0.15)
+)
+
+print(head(IPD))
+print(AgD)
+```
+
+## Automatic EM Type Detection
+
+```{r em_detection}
+# Detect effect modifier types automatically
+em_types <- detect_em_types(IPD, c("age", "sex"))
+print(em_types)
+```
+
+The function correctly identifies:
+- `age` as continuous (many unique values)
+- `sex` as binary (only 0 and 1 values)
+
+---
+
+# Interpolation Methods
+
+## Linear Interpolation
+
+Linear interpolation provides a simple and robust method for continuous effect modifiers:
+
+```{r linear_interpolation}
+# Target age for interpolation
+target_age <- 62.5
+
+# Perform linear interpolation
+linear_result <- linear_interpolation(
+  study_data = AgD,
+  target_values = c(age_mean = target_age),
+  em_cols = "age_mean",
+  te_col = "TE",
+  se_col = "se"
+)
+
+print(linear_result)
+```
+
+### Extrapolation Warnings
+
+The function automatically detects and warns about extrapolation:
+
+```{r linear_extrapolation}
+# Extrapolation example (age outside observed range)
+extrap_result <- linear_interpolation(
+  study_data = AgD,
+  target_values = c(age_mean = 85),  # Outside range
+  em_cols = "age_mean"
+)
+
+print(paste("Extrapolation detected:", extrap_result$extrapolation))
+```
+
+## Spline Interpolation
+
+For non-linear relationships, spline interpolation offers greater flexibility:
+
+```{r spline_interpolation}
+# Natural spline interpolation
+spline_result <- spline_interpolation(
+  study_data = AgD,
+  target_values = c(age_mean = target_age),
+  em_cols = "age_mean",
+  spline_type = "natural"
+)
+
+print(spline_result)
+
+# Compare methods
+comparison <- data.frame(
+  Method = c("Linear", "Spline"),
+  TE = c(linear_result$te, spline_result$te),
+  SE = c(linear_result$se, spline_result$se)
+)
+print(comparison)
+```
+
+### Smoothing Splines
+
+For noisy data, smoothing splines can provide better results:
+
+```{r smoothing_spline}
+# Smoothing spline (handles noise better)
+smooth_result <- spline_interpolation(
+  study_data = AgD,
+  target_values = c(age_mean = target_age),
+  em_cols = "age_mean",
+  spline_type = "smoothing"
+)
+
+print(smooth_result)
+```
+
+---
+
+# Adaptive Discretization
+
+When continuous modeling isn't suitable, adaptive discretization finds optimal binning:
+
+```{r discretization}
+# Generate continuous age data
+age_data <- rnorm(200, 60, 12)
+
+# Optimize discretization
+disc_result <- optimize_discretization(
+  continuous_data = age_data,
+  method = "equal_freq",
+  max_bins = 4
+)
+
+print(disc_result$bin_counts)
+print(paste("Optimal bins:", disc_result$n_bins))
+print(paste("Optimization score:", round(disc_result$score, 3)))
+```
+
+## Discretization Methods
+
+```{r discretization_methods}
+# Compare discretization methods
+freq_disc <- optimize_discretization(age_data, method = "equal_freq", max_bins = 3)
+width_disc <- optimize_discretization(age_data, method = "equal_width", max_bins = 3)
+
+cat("Equal Frequency bins:", freq_disc$n_bins, "\n")
+cat("Equal Width bins:", width_disc$n_bins, "\n")
+```
+
+---
+
+# Full NMI Analysis with Continuous EMs
+
+The main NMI function now supports continuous effect modifiers:
+
+```{r full_nmi_analysis}
+# Full continuous NMI analysis
+target_values <- c(age = 67.5)
+
+nmi_result <- NMI_interpolation_continuous(
+  IPD = IPD,
+  AgD = AgD,
+  x_vect = target_values,
+  AgD_EM_cols = "age_mean",
+  IPD_EM_cols = "age",
+  interpolation_method = "linear"
+)
+
+print(nmi_result$Final)
+print(paste("Interpolation method:", nmi_result$method))
+print(paste("Continuous EMs:", nmi_result$continuous_ems))
+```
+
+---
+
+# Visualization
+
+Visualizing the age-treatment effect relationship helps validate interpolation:
+
+```{r visualization, fig.width=8, fig.height=6}
+# Create age sequence for visualization
+age_seq <- seq(40, 80, by = 2.5)
+
+# Interpolate treatment effects across age range
+interpolated_effects <- sapply(age_seq, function(age) {
+  tryCatch({
+    result <- linear_interpolation(AgD, c(age_mean = age), "age_mean")
+    result$te
+  }, error = function(e) NA)
+})
+
+# Create plot data
+plot_data <- data.frame(
+  age = age_seq,
+  treatment_effect = interpolated_effects
+)
+
+# Remove NA values (from extrapolation failures)
+plot_data <- plot_data[!is.na(plot_data$treatment_effect), ]
+
+# Plot if ggplot2 is available
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  library(ggplot2)
+  
+  p <- ggplot() +
+    geom_line(data = plot_data, 
+              aes(x = age, y = treatment_effect), 
+              color = "blue", size = 1) +
+    geom_point(data = AgD, 
+               aes(x = age_mean, y = TE), 
+               color = "red", size = 3) +
+    geom_vline(xintercept = target_values["age"], 
+               linetype = "dashed", color = "green") +
+    labs(
+      title = "Age-Treatment Effect Relationship",
+      subtitle = "Blue: Interpolated effects, Red: Observed data, Green: Target age",
+      x = "Age (years)",
+      y = "Treatment Effect"
+    ) +
+    theme_minimal()
+  
+  print(p)
+} else {
+  # Alternative base R plot
+  plot(AgD$age_mean, AgD$TE, 
+       pch = 19, col = "red", cex = 1.5,
+       xlab = "Age (years)", ylab = "Treatment Effect",
+       main = "Age-Treatment Effect Relationship")
+  lines(plot_data$age, plot_data$treatment_effect, 
+        col = "blue", lwd = 2)
+  abline(v = target_values["age"], 
+         lty = 2, col = "green", lwd = 2)
+  legend("topright", 
+         c("Observed", "Interpolated", "Target"), 
+         col = c("red", "blue", "green"), 
+         pch = c(19, NA, NA), lty = c(NA, 1, 2))
+}
+```
+
+---
+
+# Advanced Features
+
+## Method Comparison
+
+Compare different interpolation methods across multiple target values:
+
+```{r method_comparison}
+# Compare methods across age range
+comparison_ages <- c(50, 60, 65, 70)
+methods_comparison <- data.frame(
+  age = comparison_ages,
+  linear_te = NA,
+  spline_te = NA
+)
+
+for (i in seq_along(comparison_ages)) {
+  age <- comparison_ages[i]
+  
+  # Linear interpolation
+  linear_res <- linear_interpolation(AgD, c(age_mean = age), "age_mean")
+  methods_comparison$linear_te[i] <- linear_res$te
+  
+  # Spline interpolation
+  spline_res <- spline_interpolation(AgD, c(age_mean = age), "age_mean")
+  methods_comparison$spline_te[i] <- spline_res$te
+}
+
+print(round(methods_comparison, 3))
+```
+
+## Error Handling
+
+The package provides comprehensive error handling and informative messages:
+
+```{r error_handling}
+# Example: Multiple continuous EMs (not yet supported)
+tryCatch({
+  NMI_interpolation_continuous(
+    IPD = IPD,
+    AgD = AgD,
+    x_vect = c(age = 60, bmi = 25),
+    AgD_EM_cols = c("age_mean", "bmi_mean"),
+    IPD_EM_cols = c("age", "bmi"),
+    em_types = c(age = "continuous", bmi = "continuous")
+  )
+}, error = function(e) {
+  cat("Expected error:", e$message, "\n")
+})
+```
+
+---
+
+# Best Practices
+
+## When to Use Each Method
+
+### Linear Interpolation
+- ✅ **Use when**: Linear relationship between EM and treatment effect
+- ✅ **Use when**: Limited data points (< 5 studies)
+- ✅ **Use when**: Need simple, interpretable results
+- ❌ **Avoid when**: Clear non-linear relationships exist
+
+### Spline Interpolation  
+- ✅ **Use when**: Non-linear relationships expected
+- ✅ **Use when**: Sufficient data points (≥ 5 studies)
+- ✅ **Use when**: Smooth underlying relationship assumed
+- ❌ **Avoid when**: Very noisy data or few observations
+
+### Adaptive Discretization
+- ✅ **Use when**: Need to maintain compatibility with binary NMI
+- ✅ **Use when**: Interpretability is crucial
+- ✅ **Use when**: Continuous modeling fails or is inappropriate
+- ❌ **Avoid when**: Information loss is a major concern
+
+## Data Requirements
+
+### Minimum Requirements
+- **Linear**: ≥ 2 data points
+- **Spline**: ≥ 3 data points (falls back to linear if fewer)
+- **Discretization**: ≥ 10 observations for stable binning
+
+### Recommended
+- **Linear**: 3-5 data points across EM range
+- **Spline**: 5-10 data points for stable estimation
+- **Discretization**: ≥ 50 observations for optimal binning
+
+---
+
+# Limitations and Future Work
+
+## Current Limitations
+
+1. **Single Continuous EM**: Only one continuous EM supported per analysis
+2. **No Mixed Types**: Cannot combine binary and continuous EMs yet
+3. **Limited Multivariate**: No multivariate spline methods implemented
+4. **Simple Discretization**: Advanced discretization algorithms planned
+
+## Planned Enhancements (v1.2.0+)
+
+1. **Multiple Continuous EMs**: Support for multivariate continuous modeling
+2. **Mixed EM Types**: Combine binary, categorical, and continuous EMs
+3. **Advanced Splines**: Tensor product splines, adaptive knot selection
+4. **ML-Based Discretization**: Outcome-optimized binning algorithms
+5. **Uncertainty Quantification**: Bootstrap confidence intervals for interpolation
+
+---
+
+# Technical Details
+
+## Algorithm Overview
+
+The continuous EM implementation follows this workflow:
+
+1. **EM Type Detection**: Automatic classification of variable types
+2. **Data Validation**: Check for sufficient observations and valid ranges
+3. **Method Selection**: Choose appropriate interpolation approach
+4. **Interpolation**: Apply selected method with error handling
+5. **Extrapolation Warning**: Detect and warn about out-of-range predictions
+6. **Result Integration**: Format results for compatibility with existing NMI
+
+## Performance Considerations
+
+- **Linear Interpolation**: O(n log n) complexity (sorting)
+- **Spline Interpolation**: O(n²) for smoothing splines
+- **Discretization**: O(n²k) where k is maximum bins considered
+
+For large datasets (>1000 studies), consider using linear interpolation or pre-filtering to most relevant studies.
+
+---
+
+# Session Information
+
+```{r session_info}
+sessionInfo()
+```
+
+---
+
+# References
+
+1. Harari et al. (2023). Network meta-interpolation: Effect modification adjustment in network meta-analysis using subgroup analyses.
+
+2. Sofi-Mahmudi, A. (2025). NMI Package: Continuous Effect Modifier Extensions. R package version 1.1.0+.
+
+3. Wood, S.N. (2017). Generalized Additive Models: An Introduction with R (2nd edition). Chapman and Hall/CRC.
+
+For more information, visit the [NMI package repository](https://github.com/choxos/nmi) or contact Ahmad Sofi-Mahmudi at a.sofimahmudi@gmail.com. 

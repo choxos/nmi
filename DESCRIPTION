@@ -1,6 +1,6 @@
 Package: nmi
 Title: Network Meta-Interpolation for Indirect Treatment Comparison
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: 
     person(given = "Ahmad",
            family = "Sofi-Mahmudi",
@@ -9,10 +9,11 @@ Authors@R:
 Description: Implements the Network Meta-Interpolation (NMI) methodology
     for addressing effect modification in network meta-analysis using subgroup
     analyses. The method interpolates treatment effects at desired covariate
-    levels using individual patient data and aggregate data. Based on the
-    method described in Harari et al. (2023) "Network meta-interpolation:
-    Effect modification adjustment in network meta-analysis using subgroup
-    analyses".
+    levels using individual patient data and aggregate data. Version 1.1.0 adds
+    support for continuous effect modifiers with linear interpolation, spline-based
+    methods, and adaptive discretization. Based on the method described in Harari 
+    et al. (2023) "Network meta-interpolation: Effect modification adjustment in 
+    network meta-analysis using subgroup analyses".
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
