@@ -2,12 +2,26 @@
 
 exportPattern("^[[:alpha:]]+")
 import(dplyr)
-importFrom("stats", "approx", "cut", "glm", "lm", "predict", "quantile", "smooth.spline", "spline", "var")
+importFrom("stats", "approx", "cut", "glm", "lm", "predict", "quantile", "smooth.spline", "spline", "var", "dist", "cor", "as.formula", "complete.cases")
 importFrom("utils", "combn")
 
-# Export new continuous EM functions
+# Export continuous EM functions
 export(detect_em_types)
 export(linear_interpolation)
 export(spline_interpolation)
 export(optimize_discretization)
 export(NMI_interpolation_continuous)
+
+# Export mixed EM functions
+export(validate_mixed_em_config)
+export(prepare_mixed_em_data)
+export(hybrid_interpolation)
+export(NMI_interpolation_mixed)
+export(propagate_mixed_em_uncertainty)
+export(summarize_mixed_em_result)
+
+# Export multi-continuous EM functions
+export(multivariate_interpolation)
+export(validate_multi_continuous_config)
+export(NMI_interpolation_multi_continuous)
+export(cross_validate_multi_continuous)
