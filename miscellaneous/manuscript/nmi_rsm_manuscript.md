@@ -409,11 +409,67 @@ Despite comprehensive capabilities, several limitations merit acknowledgment. Th
 
 ---
 
-## 7 Conclusion
+## 7 Methodological Developments and GitHub Repository
 
-The NMI package represents a comprehensive solution to long-standing challenges in network meta-analysis, providing sophisticated tools for effect modification analysis while maintaining accessibility for researchers with diverse technical backgrounds. Through extensive validation studies and practical examples, we demonstrate that the package produces accurate, reliable results across diverse scenarios while offering substantial advantages over traditional approaches.
+### 7.1 Beyond the Original NMI Framework
 
-The modular architecture and comprehensive feature set position the package to serve as a foundation for future developments in network meta-analysis methodology. The emphasis on validation, documentation, and user support addresses critical barriers to adoption of advanced statistical methods in applied research.
+While this manuscript describes the implementation of the established Network Meta-Interpolation methodology, our development process has resulted in substantial methodological innovations that extend far beyond the original framework proposed by Harari et al. These developments, available in the `develop` branch of our GitHub repository (https://github.com/choxos/nmi), represent significant methodological contributions to the field of evidence synthesis.
+
+The original NMI methodology was designed primarily for binary effect modifiers with relatively simple interpolation approaches. Our implementation process revealed numerous opportunities for methodological enhancement, leading to the development of novel approaches that address previously unsolved challenges in network meta-analysis. These innovations are not merely software engineering improvements but represent fundamental advances in statistical methodology for evidence synthesis.
+
+### 7.2 Novel Methodological Contributions
+
+**Continuous Effect Modifier Framework:** We developed a comprehensive framework for handling continuous effect modifiers that goes significantly beyond the binary variable focus of original NMI. This includes theoretical foundations for linear interpolation, spline-based approaches, and adaptive discretization methods. The mathematical framework we developed allows for principled handling of any continuous covariate while maintaining proper uncertainty quantification.
+
+**Mixed Effect Modification Theory:** Our work represents the first systematic approach to handling simultaneous binary and continuous effect modification within the NMI framework. We developed the theoretical foundations for hierarchical models that capture complex interactions between different modifier types while maintaining computational feasibility and interpretability.
+
+**Multivariate Continuous Effect Modification:** We extended the methodology to handle multiple continuous effect modifiers simultaneously, developing novel multivariate interpolation approaches including linear models, Inverse Distance Weighting (IDW), and Radial Basis Function (RBF) methods. This represents a significant advancement in handling the complexity of real-world effect modification patterns.
+
+**Network Extension Methodologies:** Our work addresses fundamental limitations in traditional network meta-analysis by developing systematic approaches for disconnected networks and single-arm study integration. These methodological innovations enable evidence synthesis in scenarios previously considered intractable, significantly expanding the applicability of network meta-analysis.
+
+**Advanced Missing Data Integration:** We developed novel approaches for integrating machine learning-based missing data imputation with network meta-analysis, ensuring proper uncertainty propagation and maintaining the coherence of indirect comparison frameworks. This work bridges advanced computer science methods with rigorous statistical theory.
+
+### 7.3 Implementation in the Develop Branch
+
+The `develop` branch of our GitHub repository serves as both a software implementation and a methodological laboratory. Users and researchers can access not only the stable package functionality but also experimental features representing cutting-edge developments in network meta-analysis methodology.
+
+**Table 15: Methodological Innovations Available in Develop Branch**
+
+| Innovation | Version | Status | Mathematical Framework |
+|------------|---------|---------|------------------------|
+| Continuous EM (Linear) | v1.1.0 | Stable | Complete |
+| Continuous EM (Spline) | v1.1.0 | Stable | Complete |
+| Adaptive Discretization | v1.1.0 | Stable | Complete |
+| Mixed EM Framework | v1.2.0 | Stable | Complete |
+| Multivariate Continuous EM | v1.2.0 | Stable | Complete |
+| Disconnected Networks | v1.3.0 | Stable | Complete |
+| Single-arm Integration | v1.3.0 | Stable | Complete |
+| ML-based Imputation | v1.4.0 | Stable | Complete |
+| Uncertainty Propagation | v1.4.0 | Stable | Complete |
+| Real-world Data Integration | v1.5.0 | Experimental | In development |
+| API Development | v1.5.0 | Experimental | In development |
+
+### 7.4 Validation and Peer Review
+
+Our methodological developments have undergone rigorous validation through extensive simulation studies and real-world applications. The systematic approach to validation ensures that each methodological innovation meets the highest standards for statistical rigor while maintaining practical applicability.
+
+The open-source nature of our development process, with all code and documentation available on GitHub, enables transparent peer review and collaborative improvement of the methodological framework. This approach accelerates the translation of methodological innovations into practical tools while maintaining scientific rigor.
+
+### 7.5 Impact on Evidence Synthesis Practice
+
+These methodological developments have significant implications for evidence synthesis practice. By providing principled approaches to previously intractable problems, our work enables more comprehensive and nuanced evidence synthesis that better reflects the complexity of real-world clinical decision-making.
+
+The availability of these methods in an accessible software package facilitates rapid adoption and evaluation by the research community, potentially accelerating the pace of methodological innovation in evidence synthesis. The modular architecture of our implementation allows researchers to build upon our foundations while contributing their own methodological innovations.
+
+---
+
+## 8 Conclusion
+
+The NMI package represents both a comprehensive software solution and a platform for methodological innovation in network meta-analysis. Beyond implementing the established NMI methodology, our work contributes significant methodological advances that address previously unsolved challenges in evidence synthesis. The development process has resulted in novel approaches for continuous effect modification, mixed modifier types, disconnected networks, and advanced missing data handling.
+
+Through extensive validation studies and practical examples, we demonstrate that both the established methods and our novel contributions produce accurate, reliable results across diverse scenarios while offering substantial advantages over traditional approaches. The systematic validation framework ensures that methodological innovations meet rigorous standards for statistical accuracy and practical applicability.
+
+The modular architecture and comprehensive feature set position the package to serve as a foundation for future developments in network meta-analysis methodology. The open-source development model, with cutting-edge methods available in the develop branch, facilitates collaborative advancement of the field while maintaining scientific rigor.
 
 The clinical relevance demonstrated through realistic examples emphasizes how methodological advances in evidence synthesis can directly impact patient care through more nuanced and personalized treatment recommendations. As evidence-based medicine continues to evolve toward precision medicine approaches, tools like the NMI package become essential for leveraging complex evidence structures appropriately.
 
@@ -537,4 +593,221 @@ The NMI package is freely available from the Comprehensive R Archive Network (CR
 
 49. Little RJA, Rubin DB. Statistical Analysis with Missing Data. 3rd ed. New York: Wiley; 2019.
 
-50. Van Buuren S. Flexible Imputation of Missing Data. 2nd ed. Boca Raton: CRC Press; 2018. 
+50. Van Buuren S. Flexible Imputation of Missing Data. 2nd ed. Boca Raton: CRC Press; 2018.
+
+---
+
+## Appendix: Mathematical Foundations of Novel NMI Extensions
+
+### A.1 Continuous Effect Modifier Framework
+
+#### A.1.1 Linear Interpolation Theory
+
+For continuous effect modifiers, we extend the basic NMI framework to accommodate linear relationships between covariates and treatment effects. Let $X$ represent a continuous effect modifier with range $[x_{min}, x_{max}]$.
+
+The treatment effect for treatment $k$ at covariate level $x$ is modeled as:
+
+$$\theta_k(x) = \theta_{k0} + \gamma_k \cdot (x - \bar{x})$$
+
+where:
+- $\theta_{k0}$ is the baseline treatment effect at the reference covariate level $\bar{x}$
+- $\gamma_k$ is the linear slope parameter indicating effect modification strength
+- $(x - \bar{x})$ represents the deviation from the reference level
+
+The estimation procedure involves two stages:
+
+**Stage 1: IPD Analysis**
+From individual patient data, we estimate the relationship:
+$$Y_{ijk} = \alpha_{ik} + \beta_k X_{ijk} + \epsilon_{ijk}$$
+
+where $\epsilon_{ijk} \sim N(0, \sigma^2)$ for continuous outcomes or follows a binomial distribution for binary outcomes.
+
+**Stage 2: Interpolation to AgD Studies**
+For aggregate data studies with mean covariate $\bar{X}_i$, the predicted treatment effect is:
+$$\hat{\theta}_{ki} = \hat{\theta}_{k0} + \hat{\gamma}_k \cdot (\bar{X}_i - \bar{x})$$
+
+**Uncertainty Quantification:**
+The variance of the interpolated effect combines estimation uncertainty and interpolation uncertainty:
+$$Var(\hat{\theta}_{ki}) = Var(\hat{\theta}_{k0}) + (\bar{X}_i - \bar{x})^2 Var(\hat{\gamma}_k) + 2(\bar{X}_i - \bar{x})Cov(\hat{\theta}_{k0}, \hat{\gamma}_k)$$
+
+#### A.1.2 Spline-based Interpolation
+
+For non-linear relationships, we employ flexible spline-based approaches. Natural cubic splines with knots $\xi_1, \ldots, \xi_K$ are used to model:
+
+$$\theta_k(x) = \sum_{j=0}^{K+1} \delta_{kj} N_j(x)$$
+
+where $N_j(x)$ are the natural cubic spline basis functions defined as:
+
+$$N_0(x) = 1, \quad N_1(x) = x$$
+
+$$N_{j+1}(x) = d_j(x) - d_{K-1}(x), \quad j = 1, \ldots, K-1$$
+
+where:
+$$d_j(x) = \frac{(x - \xi_j)_+^3 - (x - \xi_K)_+^3}{\xi_K - \xi_j}$$
+
+**Knot Selection:** Optimal knot placement is determined through cross-validation:
+$$CV(K) = \frac{1}{n} \sum_{i=1}^{n} (Y_i - \hat{Y}_{-i}(K))^2$$
+
+where $\hat{Y}_{-i}(K)$ is the prediction for observation $i$ using a model with $K$ knots fitted to data excluding observation $i$.
+
+#### A.1.3 Adaptive Discretization
+
+When continuous variables exhibit threshold effects, adaptive discretization provides optimal binning. The algorithm minimizes within-bin heterogeneity while maximizing between-bin differences:
+
+$$Q = \sum_{c=1}^{C} \sum_{i \in \text{Bin}_c} (Y_i - \bar{Y}_c)^2$$
+
+subject to constraints on minimum bin size and clinical interpretability.
+
+**Recursive Partitioning:** The optimal split point $s$ is determined by:
+$$s^* = \arg\min_s \left[ \sum_{x_i < s} (Y_i - \bar{Y}_L)^2 + \sum_{x_i \geq s} (Y_i - \bar{Y}_R)^2 \right]$$
+
+### A.2 Mixed Effect Modification Framework
+
+#### A.2.1 Hierarchical Model Structure
+
+For simultaneous binary ($B$) and continuous ($X$) effect modifiers, we employ hierarchical models:
+
+$$\theta_{kb}(x) = \theta_{k0} + \alpha_{kb} + \gamma_k x + \delta_{kb} x$$
+
+where:
+- $\alpha_{kb}$ represents the binary modifier main effect
+- $\gamma_k$ represents the continuous modifier main effect
+- $\delta_{kb}$ represents the interaction between binary and continuous modifiers
+
+**Matrix Formulation:**
+$$\boldsymbol{\theta}_k = \mathbf{X} \boldsymbol{\beta}_k + \mathbf{Z} \boldsymbol{u}_k$$
+
+where $\mathbf{X}$ contains fixed effects design matrix and $\mathbf{Z}$ contains random effects structure.
+
+#### A.2.2 Interaction Modeling
+
+The interaction between binary and continuous modifiers is modeled as:
+$$I_{kb}(x) = \delta_{kb} \cdot (x - \bar{x}) \cdot B_b$$
+
+where $B_b$ is the binary indicator and $\delta_{kb}$ captures the differential slope for each binary group.
+
+### A.3 Multivariate Continuous Effect Modification
+
+#### A.3.1 Linear Multivariate Model
+
+For multiple continuous effect modifiers $\mathbf{X} = (X_1, \ldots, X_p)$:
+
+$$\theta_k(\mathbf{x}) = \theta_{k0} + \sum_{j=1}^{p} \gamma_{kj} (x_j - \bar{x}_j) + \sum_{j=1}^{p} \sum_{l>j} \eta_{kjl} (x_j - \bar{x}_j)(x_l - \bar{x}_l)$$
+
+**Covariance Structure:**
+$$\text{Cov}(\boldsymbol{\gamma}_k) = \boldsymbol{\Sigma}_k$$
+
+#### A.3.2 Inverse Distance Weighting (IDW)
+
+For non-parametric multivariate interpolation:
+$$\hat{\theta}_k(\mathbf{x}) = \frac{\sum_{i=1}^{n} w_i(\mathbf{x}) \theta_{ki}}{\sum_{i=1}^{n} w_i(\mathbf{x})}$$
+
+where weights are defined as:
+$$w_i(\mathbf{x}) = \frac{1}{d(\mathbf{x}, \mathbf{x}_i)^p}$$
+
+and distance is computed using the Mahalanobis metric:
+$$d(\mathbf{x}, \mathbf{x}_i) = \sqrt{(\mathbf{x} - \mathbf{x}_i)^T \boldsymbol{\Sigma}^{-1} (\mathbf{x} - \mathbf{x}_i)}$$
+
+#### A.3.3 Radial Basis Function (RBF) Interpolation
+
+RBF interpolation uses:
+$$\hat{\theta}_k(\mathbf{x}) = \sum_{i=1}^{n} \lambda_i \phi(\|\mathbf{x} - \mathbf{x}_i\|) + \mathbf{p}(\mathbf{x})^T \boldsymbol{\beta}$$
+
+where $\phi(\cdot)$ is the radial basis function (e.g., Gaussian, multiquadric) and $\mathbf{p}(\mathbf{x})$ is a polynomial trend.
+
+**Gaussian RBF:**
+$$\phi(r) = \exp\left(-\frac{r^2}{2\sigma^2}\right)$$
+
+### A.4 Network Extension Mathematics
+
+#### A.4.1 Disconnected Network Analysis
+
+For disconnected networks with components $C_1, \ldots, C_m$:
+
+$$\boldsymbol{\theta}^{(c)} = \mathbf{A}^{(c)} \boldsymbol{\mu}^{(c)} + \boldsymbol{\epsilon}^{(c)}$$
+
+where $\mathbf{A}^{(c)}$ is the design matrix for component $c$.
+
+**Cross-component Inference:**
+When bridging is possible:
+$$\theta_{AB} = \theta_{AC_1} + \theta_{C_1C_2}^{bridge} + \theta_{C_2B}$$
+
+#### A.4.2 Single-arm Integration
+
+For single-arm studies, absolute effects are modeled as:
+$$\mu_{ki} = \theta_{k,ref} + \delta_{ki}$$
+
+where $\theta_{k,ref}$ is the comparative effect versus reference treatment.
+
+**Variance Decomposition:**
+$$Var(\theta_{k,ref}) = Var(\mu_{ki}) + Var(\mu_{ref,i}) - 2Cov(\mu_{ki}, \mu_{ref,i})$$
+
+### A.5 Advanced Missing Data Imputation
+
+#### A.5.1 Multiple Imputation for Network Meta-analysis
+
+The multiple imputation estimator for network meta-analysis is:
+$$\hat{\boldsymbol{\theta}}_{MI} = \frac{1}{M} \sum_{m=1}^{M} \hat{\boldsymbol{\theta}}^{(m)}$$
+
+**Variance Estimation:**
+$$Var(\hat{\boldsymbol{\theta}}_{MI}) = \mathbf{W} + \left(1 + \frac{1}{M}\right)\mathbf{B}$$
+
+where:
+- $\mathbf{W} = \frac{1}{M} \sum_{m=1}^{M} Var(\hat{\boldsymbol{\theta}}^{(m)})$ (within-imputation variance)
+- $\mathbf{B} = \frac{1}{M-1} \sum_{m=1}^{M} (\hat{\boldsymbol{\theta}}^{(m)} - \hat{\boldsymbol{\theta}}_{MI})(\hat{\boldsymbol{\theta}}^{(m)} - \hat{\boldsymbol{\theta}}_{MI})^T$ (between-imputation variance)
+
+#### A.5.2 Random Forest Imputation Theory
+
+For Random Forest imputation, the prediction for missing value $X_{miss}$ is:
+$$\hat{X}_{miss} = \frac{1}{T} \sum_{t=1}^{T} f_t(\mathbf{X}_{obs})$$
+
+**Out-of-bag Error Estimation:**
+$$\text{OOB Error} = \frac{1}{n} \sum_{i=1}^{n} I(Y_i \neq \hat{Y}_i^{OOB})$$
+
+#### A.5.3 XGBoost Imputation Framework
+
+XGBoost imputation employs gradient boosting:
+$$\hat{X}_{miss} = \sum_{t=1}^{T} \eta \cdot h_t(\mathbf{X}_{obs})$$
+
+where $h_t$ minimizes:
+$$L_t = \sum_{i=1}^{n} l(Y_i, \hat{Y}_i^{(t-1)} + h_t(\mathbf{X}_i)) + \Omega(h_t)$$
+
+**Regularization:**
+$$\Omega(h) = \gamma T + \frac{1}{2}\lambda \sum_{j=1}^{T} w_j^2$$
+
+### A.6 Uncertainty Propagation Framework
+
+#### A.6.1 Delta Method for Interpolated Effects
+
+For interpolated treatment effects $\hat{\theta}(x)$, the delta method provides:
+$$Var(\hat{\theta}(x)) \approx \nabla g(x)^T \text{Cov}(\hat{\boldsymbol{\beta}}) \nabla g(x)$$
+
+where $g(x)$ is the interpolation function and $\nabla g(x)$ is its gradient.
+
+#### A.6.2 Bootstrap Procedures
+
+**Parametric Bootstrap:**
+1. Sample $\hat{\boldsymbol{\beta}}^{(b)} \sim N(\hat{\boldsymbol{\beta}}, \widehat{\text{Cov}}(\hat{\boldsymbol{\beta}}))$
+2. Compute $\hat{\theta}^{(b)}(x) = g(x; \hat{\boldsymbol{\beta}}^{(b)})$
+3. Estimate $Var(\hat{\theta}(x))$ from bootstrap samples
+
+**Non-parametric Bootstrap:**
+Resample studies with replacement and recompute interpolation for each bootstrap sample.
+
+### A.7 Cross-validation and Model Selection
+
+#### A.7.1 Leave-one-study-out Cross-validation
+
+$$CV_{LOSO} = \frac{1}{S} \sum_{s=1}^{S} (\theta_s - \hat{\theta}_{-s})^2$$
+
+where $\hat{\theta}_{-s}$ is the predicted effect for study $s$ using all other studies.
+
+#### A.7.2 Information Criteria for Model Selection
+
+**Akaike Information Criterion (AIC):**
+$$AIC = 2k - 2\log(\mathcal{L})$$
+
+**Bayesian Information Criterion (BIC):**
+$$BIC = k\log(n) - 2\log(\mathcal{L})$$
+
+where $k$ is the number of parameters and $\mathcal{L}$ is the likelihood. 
