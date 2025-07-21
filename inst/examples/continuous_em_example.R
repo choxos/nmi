@@ -2,6 +2,9 @@
 # Author: Ahmad Sofi-Mahmudi
 # Date: 2025-01-21
 
+# Installation (if not already installed):
+# devtools::install_github("choxos/nmi", build_vignettes = TRUE)
+
 library(nmi)
 
 # Example: Age as a Continuous Effect Modifier

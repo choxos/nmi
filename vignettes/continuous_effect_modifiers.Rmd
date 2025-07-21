@@ -27,6 +27,21 @@ knitr::opts_chunk$set(
 
 The Network Meta-Interpolation (NMI) package has been extended to support **continuous effect modifiers**, moving beyond the original binary-only implementation. This advancement allows researchers to handle real-valued covariates like age, BMI, or biomarker levels in network meta-analysis.
 
+## Installation
+
+If you haven't installed the NMI package yet:
+
+```{r installation, eval=FALSE}
+# Install from GitHub (recommended)
+devtools::install_github("choxos/nmi", build_vignettes = TRUE)
+
+# Or install locally if you have the source
+# devtools::install_local("path/to/nmi", build_vignettes = TRUE)
+
+# Load the package
+library(nmi)
+```
+
 ## What's New in v1.1.0+
 
 - 🎯 **Continuous Effect Modifier Support**: Handle age, BMI, continuous biomarkers

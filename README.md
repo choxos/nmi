@@ -35,11 +35,31 @@ The NMI package enables researchers to perform network meta-analysis while accou
 
 ## Installation
 
-### Standard Installation
+### GitHub Installation (Recommended)
+
+Install the latest version directly from GitHub:
 
 ```r
-# Install from GitHub
+# Standard installation
 devtools::install_github("choxos/nmi")
+
+# With vignettes (recommended for full documentation)
+devtools::install_github("choxos/nmi", build_vignettes = TRUE)
+
+# Development version (latest features)
+devtools::install_github("choxos/nmi", ref = "develop", build_vignettes = TRUE)
+```
+
+### Local Installation
+
+If you have downloaded or cloned the repository locally:
+
+```r
+# Install from local directory
+devtools::install_local("path/to/nmi")
+
+# With vignettes
+devtools::install_local("path/to/nmi", build_vignettes = TRUE)
 ```
 
 ### With Bayesian Features
@@ -47,12 +67,25 @@ devtools::install_github("choxos/nmi")
 For full Bayesian functionality including Stan integration:
 
 ```r
-# First install cmdstanr
+# First install cmdstanr (if not already installed)
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 cmdstanr::install_cmdstan()
 
-# Then install NMI
+# Then install NMI from GitHub
 devtools::install_github("choxos/nmi", build_vignettes = TRUE)
+```
+
+### Verify Installation
+
+```r
+# Load and test the package
+library(nmi)
+
+# Quick functionality test
+nmi_help()
+
+# Check package info
+packageVersion("nmi")
 ```
 
 ## Quick Start
