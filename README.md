@@ -2,17 +2,17 @@
 
 [![R](https://img.shields.io/badge/R-%E2%89%A5%203.5.0-blue)](https://www.r-project.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-1.1.0-green)](https://github.com/choxos/nmi)
+[![Version](https://img.shields.io/badge/Version-1.4.0-green)](https://github.com/choxos/nmi)
 
 A comprehensive R package implementing **Network Meta-Interpolation (NMI)** methodology for addressing effect modification in network meta-analysis using subgroup analyses.
 
-## 🆕 What's New in v1.1.0
+## 🆕 What's New in v1.4.0
 
-- 🎯 **Continuous Effect Modifier Support**: Handle age, BMI, continuous biomarkers
-- 📈 **Multiple Interpolation Methods**: Linear, spline, and adaptive discretization  
-- 🔍 **Automatic EM Type Detection**: Smart detection of binary vs continuous variables
-- ⚡ **Flexible API**: Seamless integration with existing NMI workflow
-- ✅ **Comprehensive Testing**: Full validation suite with real-world examples
+- 🤖 **Machine Learning Imputation**: Random Forest, XGBoost, and KNN-based missing data imputation
+- 📊 **Advanced Missing Data Analysis**: Sophisticated pattern detection and strategy selection
+- 🔄 **Multiple Imputation Integration**: Rubin's rules for pooling results across imputations
+- ⚡ **Performance Optimizations**: Enhanced computational efficiency for large datasets
+- 🛠️ **Quality Assessment**: Comprehensive imputation quality evaluation metrics
 
 ## Overview
 
@@ -22,16 +22,17 @@ The NMI package enables researchers to perform network meta-analysis while accou
 - **Aggregate Data (AgD)**: Study-level summaries from literature
 - **Advanced Interpolation**: Estimate treatment effects at target covariate values
 
-### Key Features
+### Key Features Evolution
 
-| Feature | Binary EMs | Continuous EMs | Status |
-|---------|------------|----------------|--------|
-| **Basic Interpolation** | ✅ | ✅ | Available |
-| **Linear Methods** | ✅ | ✅ | Available |
-| **Spline Methods** | ➖ | ✅ | New in v1.1.0 |
-| **Auto-Detection** | ✅ | ✅ | New in v1.1.0 |
-| **Mixed EM Types** | ✅ | 🔄 | Coming in v1.2.0 |
-| **Multiple Continuous** | ➖ | 🔄 | Coming in v1.2.0 |
+| Feature | Binary EMs | Continuous EMs | Mixed EMs | Network Extensions | ML Imputation |
+|---------|------------|----------------|-----------|-------------------|---------------|
+| **Basic Interpolation** | ✅ v1.0.0 | ✅ v1.1.0 | ✅ v1.2.0 | ✅ v1.3.0 | ✅ v1.4.0 |
+| **Linear Methods** | ✅ v1.0.0 | ✅ v1.1.0 | ✅ v1.2.0 | ✅ v1.3.0 | ✅ v1.4.0 |
+| **Spline Methods** | ➖ | ✅ v1.1.0 | ✅ v1.2.0 | ✅ v1.3.0 | ✅ v1.4.0 |
+| **Auto-Detection** | ✅ v1.0.0 | ✅ v1.1.0 | ✅ v1.2.0 | ✅ v1.3.0 | ✅ v1.4.0 |
+| **Disconnected Networks** | ➖ | ➖ | ➖ | ✅ v1.3.0 | ✅ v1.4.0 |
+| **Single-arm Integration** | ➖ | ➖ | ➖ | ✅ v1.3.0 | ✅ v1.4.0 |
+| **Missing Data ML** | ➖ | ➖ | ➖ | ➖ | ✅ v1.4.0 |
 
 ## Installation
 
@@ -78,6 +79,18 @@ cmdstanr::check_cmdstan_toolchain(fix = TRUE)
 devtools::install_github("choxos/nmi", build_vignettes = TRUE)
 ```
 
+### With Machine Learning Features
+
+For advanced ML imputation capabilities:
+
+```r
+# Install ML dependencies
+install.packages(c("randomForest", "xgboost", "VIM"))
+
+# Then install NMI with full capabilities
+devtools::install_github("choxos/nmi", build_vignettes = TRUE)
+```
+
 ### Verify Installation
 
 ```r
@@ -120,7 +133,7 @@ result_table(result)
 result_forest_plot(result)
 ```
 
-### Continuous Effect Modifiers (New!)
+### Continuous Effect Modifiers
 
 ```r
 library(nmi)
@@ -133,25 +146,66 @@ IPD <- data.frame(
   outcome = rbinom(200, 1, 0.4)
 )
 
-AgD <- data.frame(
-  Study = paste0("Study_", 1:5),
-  age_mean = c(45, 55, 65, 70, 75),
-  TE = c(0.1, 0.3, 0.5, 0.4, 0.2),
-  se = c(0.12, 0.10, 0.11, 0.13, 0.15)
-)
-
 # Continuous EM analysis
 target_age <- 62.5
 result <- NMI_interpolation_continuous(
-  IPD = IPD,
-  AgD = AgD,
-  x_vect = c(age = target_age),
-  AgD_EM_cols = "age_mean",
-  IPD_EM_cols = "age",
-  interpolation_method = "linear"  # or "spline"
+  IPD = IPD, AgD = AgD, x_vect = c(age = target_age),
+  AgD_EM_cols = "age_mean", IPD_EM_cols = "age",
+  interpolation_method = "spline"  # Linear, spline, or discretization
+)
+```
+
+### Mixed Effect Modifiers
+
+```r
+# Mixed binary + continuous EMs
+result <- NMI_interpolation_mixed(
+  IPD = IPD, AgD = AgD, 
+  x_vect = c(age = 65, sex = 1),  # Continuous age + binary sex
+  AgD_EM_cols = c("age_mean", "sex_prop"),
+  IPD_EM_cols = c("age", "sex")
+)
+```
+
+### Network Extensions (v1.3.0+)
+
+```r
+# Handle disconnected networks
+connectivity <- detect_network_connectivity(AgD, c("Trt1", "Trt2"), "Study")
+
+if (!connectivity$is_connected) {
+  result <- handle_disconnected_network(
+    IPD, AgD, x_vect, AgD_EM_cols, IPD_EM_cols,
+    trt_cols = c("Trt1", "Trt2"), study_col = "Study",
+    strategy = "component_wise"
+  )
+}
+
+# Integrate single-arm studies
+result <- nmi_with_single_arm_integration(
+  IPD, AgD_mixed, x_vect, AgD_EM_cols, IPD_EM_cols,
+  trt_cols = c("Trt1", "Trt2"), study_col = "Study",
+  reference_treatment = "Placebo"
+)
+```
+
+### Machine Learning Imputation (v1.4.0+)
+
+```r
+# Automatic ML-based missing data imputation
+result <- nmi_with_ml_imputation(
+  IPD = IPD_with_missing, AgD = AgD,
+  x_vect = c(age = 65), 
+  AgD_EM_cols = "age_mean", IPD_EM_cols = "age",
+  imputation_method = "random_forest",
+  n_imputations = 5
 )
 
-print(result$Final)
+# Advanced missing data analysis
+missing_analysis <- detect_missing_patterns(
+  IPD_with_missing, AgD, c("age", "sex"), "outcome"
+)
+print(missing_analysis$strategy)  # Recommended imputation strategy
 ```
 
 ## Core Functions
@@ -160,20 +214,27 @@ print(result$Final)
 - `load_example_ipd()` - Load example individual patient data
 - `load_example_agd()` - Load example aggregate data
 - `GLMLOGIT()` - Convert IPD to subgroup analyses
-- `BLUP_impute()` - Impute missing effect modifier data
+- `BLUP_impute()` - Basic imputation for missing effect modifier data
 
 ### Analysis Functions
 - `nmi_full_analysis()` - Complete NMI analysis workflow
 - `NMI_interpolation()` - Core binary EM interpolation
-- `NMI_interpolation_continuous()` - **New!** Continuous EM interpolation
+- `NMI_interpolation_continuous()` - **v1.1.0+** Continuous EM interpolation
+- `NMI_interpolation_mixed()` - **v1.2.0+** Mixed EM interpolation
 - `NMA_run()` - Network meta-analysis
 - `nmi_standard_nma()` - Standard NMA without interpolation
 
-### Continuous EM Methods (New!)
-- `detect_em_types()` - Automatic EM type detection
-- `linear_interpolation()` - Linear interpolation for continuous EMs  
-- `spline_interpolation()` - Spline-based interpolation
-- `optimize_discretization()` - Adaptive discretization
+### Network Extensions (v1.3.0+)
+- `detect_network_connectivity()` - Analyze network structure
+- `handle_disconnected_network()` - Manage disconnected networks
+- `detect_single_arm_studies()` - Identify single-arm studies
+- `nmi_with_single_arm_integration()` - Integrate single-arm evidence
+
+### Machine Learning Imputation (v1.4.0+)
+- `detect_missing_patterns()` - **New!** Analyze missing data patterns
+- `ml_imputation()` - **New!** ML-based imputation (Random Forest, XGBoost, KNN)
+- `evaluate_imputation_quality()` - **New!** Assess imputation performance
+- `nmi_with_ml_imputation()` - **New!** Complete NMI with ML imputation
 
 ### Visualization & Reporting
 - `result_table()` - Formatted results table
@@ -192,108 +253,65 @@ print(result$Final)
 | **Linear** | Linear relationships, few studies | Simple, robust, fast | Limited flexibility |
 | **Spline** | Non-linear relationships | Flexible, smooth curves | Needs ≥3 studies |
 | **Discretization** | Interpretability | Compatible with binary methods | Information loss |
+| **Mixed** | Multiple EM types | Handles complex modification | Higher complexity |
+| **ML Imputation** | Missing data | Advanced pattern recognition | Requires larger samples |
 
-## Example Workflows
+## Advanced Features
 
-### 1. Automatic Method Selection
+### Effect Modifier Types
 
-```r
-# Let NMI automatically detect EM types and choose methods
-em_types <- detect_em_types(IPD, c("age", "sex", "biomarker"))
-print(em_types)
-# age: continuous, sex: binary, biomarker: continuous
-```
+| EM Type | Description | NMI Support | Examples |
+|---------|-------------|-------------|----------|
+| **Binary** | Two categories (0/1) | ✅ Full support | Sex (M/F), Treatment history (Y/N) |
+| **Categorical** | Multiple categories | ✅ Standard NMI | Disease stage (1,2,3), Risk groups |
+| **Continuous** | Real-valued variables | ✅ v1.1.0+ | Age, BMI, biomarker levels |
+| **Mixed** | Binary + continuous | ✅ v1.2.0+ | Age + sex, BMI + treatment history |
+| **Multiple Continuous** | 2+ continuous EMs | ✅ v1.2.0+ | Age + BMI + baseline score |
 
-### 2. Method Comparison
+### Missing Data Handling
 
-```r
-# Compare interpolation methods
-linear_result <- linear_interpolation(AgD, c(age_mean = 65), "age_mean")
-spline_result <- spline_interpolation(AgD, c(age_mean = 65), "age_mean")
+| Scenario | Recommended Method | NMI Capability |
+|----------|-------------------|----------------|
+| **< 5% missing** | Simple imputation | Built-in mean/mode |
+| **5-20% missing** | Multiple imputation | MICE-compatible |
+| **> 20% missing** | ML imputation | ✅ v1.4.0+ Random Forest/XGBoost |
+| **Complex patterns** | Advanced ML | ✅ v1.4.0+ Pattern detection |
 
-comparison <- data.frame(
-  Method = c("Linear", "Spline"),
-  TE = c(linear_result$te, spline_result$te),
-  SE = c(linear_result$se, spline_result$se)
-)
-```
+### Network Types
 
-### 3. Adaptive Discretization
-
-```r
-# Optimize continuous variable binning
-discretization <- optimize_discretization(
-  continuous_data = IPD$age,
-  method = "equal_freq",
-  max_bins = 5
-)
-print(discretization$bin_counts)
-```
-
-## Documentation
-
-### Vignettes
-
-- **Getting Started**: `vignette("getting_started", package = "nmi")`
-- **Continuous EMs**: `vignette("continuous_effect_modifiers", package = "nmi")` 
-- **Advanced Workflows**: `vignette("advanced_workflows", package = "nmi")`
-- **HTML Reporting**: `vignette("html_reporting", package = "nmi")`
-- **Stan Integration**: `vignette("cmdstanr_integration", package = "nmi")`
-
-### Quick Access
-
-```r
-# Open vignettes
-open_nmi_vignette()
-
-# Package help
-help(package = "nmi")
-
-# Quick examples
-nmi_help()
-```
-
-## Methodology
-
-The NMI methodology addresses effect modification in network meta-analysis by:
-
-1. **Data Integration**: Combining IPD and AgD sources
-2. **Effect Modifier Modeling**: Handling binary, categorical, and continuous covariates
-3. **Interpolation**: Estimating effects at target covariate values
-4. **Uncertainty Quantification**: Proper propagation of estimation uncertainty
-
-### Supported Effect Modifiers
-
-| Type | Examples | Methods Available |
-|------|----------|-------------------|
-| **Binary** | Sex (0/1), Treatment history | Standard NMI |
-| **Categorical** | Disease stage (1,2,3), Risk groups | Standard NMI |
-| **Continuous** | Age, BMI, biomarker levels | Linear, Spline, Discretization |
+| Network Type | Analysis Approach | NMI Support |
+|--------------|-------------------|-------------|
+| **Connected** | Standard NMI | ✅ All versions |
+| **Disconnected** | Component-wise | ✅ v1.3.0+ |
+| **Star network** | Hub-based analysis | ✅ Reference connection |
+| **Mixed evidence** | Single-arm integration | ✅ v1.3.0+ |
 
 ## Performance & Scalability
 
-| Dataset Size | Recommended Method | Complexity |
-|--------------|-------------------|------------|
-| Small (≤5 studies) | Linear interpolation | O(n log n) |
-| Medium (5-20 studies) | Spline interpolation | O(n²) |
-| Large (>20 studies) | Linear or pre-filtering | O(n log n) |
+| Dataset Size | Recommended Configuration | Complexity |
+|--------------|---------------------------|------------|
+| **Small (≤5 studies)** | Linear interpolation | O(n log n) |
+| **Medium (5-20 studies)** | Spline interpolation | O(n²) |
+| **Large (>20 studies)** | ML imputation + filtering | O(n log n) |
+| **Missing data >20%** | Advanced ML methods | O(n² log n) |
 
 ## Development Roadmap
 
-### Phase 2 (v1.2.0) - Mixed EM Types
-- Multiple continuous EMs support
-- Binary + continuous EM combinations
-- Advanced multivariate splines
+### ✅ Completed Features (v1.0.0 - v1.4.0)
+- ✅ **Phase 1 (v1.1.0)**: Continuous Effect Modifiers
+- ✅ **Phase 2 (v1.2.0)**: Mixed EM Types & Multi-Continuous EMs  
+- ✅ **Phase 3 (v1.3.0)**: Network Extensions (Disconnected networks, Single-arm integration)
+- ✅ **Phase 4 (v1.4.0)**: Advanced Analytics (ML imputation, Missing data analysis)
 
-### Phase 3 (v1.3.0) - Network Extensions  
-- Disconnected network handling
-- Real-world data integration
-- Single-arm study inclusion
-
-### Phase 4 (v1.4.0) - Advanced Analytics
-- Machine learning imputation
-- Uncertainty quantification
-- Performance optimization
+### 🔄 Future Development (v1.5.0+)
+- 🔄 **Phase 5 (v1.5.0)**: Performance & Scalability
+  - Parallel processing optimization
+  - Memory-efficient algorithms
+  - Large dataset handling
+- 🔄 **Phase 6 (v1.6.0)**: API & Integration
+  - REST API development
+  - Cloud deployment tools
+  - Integration with meta-analysis platforms
 
 ## Contributing
 
@@ -326,7 +344,7 @@ citation("nmi")
 ```
 
 **For the package:**
-> Sofi-Mahmudi, A. (2025). Network Meta-Interpolation (NMI) Package. R package version 1.1.0.
+> Sofi-Mahmudi, A. (2025). Network Meta-Interpolation (NMI) Package. R package version 1.4.0. GitHub: https://github.com/choxos/nmi
 
 **For the methodology:**
 > Harari et al. (2023). Network meta-interpolation: Effect modification adjustment in network meta-analysis using subgroup analyses.
@@ -339,9 +357,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Author**: Ahmad Sofi-Mahmudi
 - **Email**: a.sofimahmudi@gmail.com  
-- **GitHub**: [https://github.com/choxos/nmi](https://github.com/choxos/nmi)
-- **Issues**: [Report bugs and request features](https://github.com/choxos/nmi/issues)
+- **GitHub**: https://github.com/choxos/nmi
+- **Issues**: https://github.com/choxos/nmi/issues
 
----
+### Getting Help
 
-**🚀 Ready to get started?** Install the package and run `nmi_help()` for immediate guidance!
+```r
+# Quick help
+nmi_help()
+
+# Package documentation
+help(package = "nmi")
+
+# Open vignettes
+open_nmi_vignette()
+```
+
+**🌟 The NMI package now provides state-of-the-art capabilities for network meta-analysis with advanced effect modification handling, network extensions, and machine learning-powered missing data imputation!** 🚀
