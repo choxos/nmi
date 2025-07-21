@@ -84,12 +84,22 @@ devtools::install_github("choxos/nmi", build_vignettes = TRUE)
 # Load and test the package
 library(nmi)
 
+# Check version
+packageVersion("nmi")
+
 # Quick functionality test
 nmi_help()
 
 # Check package info
 packageVersion("nmi")
 ```
+
+### Common Compatibility Note
+
+If you encounter a `promises >= 1.3.2` requirement error:
+- The **core NMI functionality** works without promises (use `nmi_full_analysis()`, `NMI_interpolation()`)  
+- The **Shiny app** (`launch_nmi_app()`) requires updated Shiny dependencies
+- **Solution**: `install.packages("promises")` or use core functions only
 
 ## Quick Start
 

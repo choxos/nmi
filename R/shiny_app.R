@@ -48,7 +48,25 @@ launch_nmi_app <- function(port = NULL, launch.browser = TRUE, host = '127.0.0.1
     stop(paste("The following required packages are missing:", 
                paste(missing_packages, collapse = ", "), 
                "\nPlease install them using: install.packages(c(", 
-               paste(paste0("'", missing_packages, "'"), collapse = ", "), "))"))
+               paste0("'", missing_packages, "'", collapse = ", "), "))")
+    )
+  }
+  
+  # Check for promises compatibility if shiny is available
+  if (requireNamespace("shiny", quietly = TRUE)) {
+    shiny_version <- packageVersion("shiny")
+    
+    # Check if promises might be an issue
+    tryCatch({
+      if (requireNamespace("promises", quietly = TRUE)) {
+        promises_version <- packageVersion("promises")
+        if (promises_version < "1.3.0") {
+          warning("Promises version ", promises_version, " may cause compatibility issues. Consider updating: install.packages('promises')")
+        }
+      }
+    }, error = function(e) {
+      message("Note: If you encounter promises-related errors, try: install.packages('promises')")
+    })
   }
   
   # Get the app directory

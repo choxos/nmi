@@ -46,7 +46,7 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown,
-    shiny,
+    shiny (>= 1.6.0),
     shinydashboard,
     shinyWidgets,
     DT,
