@@ -22,6 +22,7 @@ Thumbs.db
 
 # Miscellaneous development files
 miscellaneous/
+!miscellaneous/manuscript/
 .claude/
 
 # Stan compilation files
