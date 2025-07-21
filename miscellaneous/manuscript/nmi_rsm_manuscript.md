@@ -1,7 +1,7 @@
 # NMI: An R Package for Network Meta-Interpolation with Advanced Effect Modification Handling
 
 **Authors:** Ahmad Sofi-Mahmudi¹  
-**Affiliation:** ¹[Affiliation to be specified]  
+**Affiliation:** ¹Cytel Inc, Toronto, ON, Canada  
 **Corresponding author:** Ahmad Sofi-Mahmudi; Email: a.sofimahmudi@gmail.com
 
 ---
