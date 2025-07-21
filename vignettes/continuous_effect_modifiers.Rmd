@@ -38,6 +38,11 @@ devtools::install_github("choxos/nmi", build_vignettes = TRUE)
 # Or install locally if you have the source
 # devtools::install_local("path/to/nmi", build_vignettes = TRUE)
 
+# For Bayesian features (optional):
+# install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+# cmdstanr::install_cmdstan()
+# cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+
 # Load the package
 library(nmi)
 ```

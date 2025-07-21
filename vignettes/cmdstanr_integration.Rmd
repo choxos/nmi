@@ -45,12 +45,22 @@ The NMI package has been updated to use cmdstanr while maintaining backward comp
 ### Installing cmdstanr
 
 ```{r install-cmdstanr, eval=FALSE}
-# Install cmdstanr from Stan repository
+# Install cmdstanr
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 
-# Load and install CmdStan backend
+# Install CmdStan backend
 library(cmdstanr)
 install_cmdstan()
+
+# Check and fix C++ toolchain
+check_cmdstan_toolchain(fix = TRUE)
+```
+
+### Installing NMI with cmdstanr Support
+
+```{r install-nmi, eval=FALSE}
+# Install NMI package
+devtools::install_github("choxos/nmi", build_vignettes = TRUE)
 ```
 
 ### Verifying Installation

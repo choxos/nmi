@@ -71,6 +71,9 @@ For full Bayesian functionality including Stan integration:
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 cmdstanr::install_cmdstan()
 
+# Check and fix C++ toolchain
+cmdstanr::check_cmdstan_toolchain(fix = TRUE)
+
 # Then install NMI from GitHub
 devtools::install_github("choxos/nmi", build_vignettes = TRUE)
 ```
