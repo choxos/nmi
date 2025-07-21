@@ -1,0 +1,55 @@
+Package: nmi
+Title: Network Meta-Interpolation for Indirect Treatment Comparison
+Version: 1.0.0
+Authors@R: 
+    person(given = "Ahmad",
+           family = "Sofi-Mahmudi",
+           role = c("aut", "cre"),
+           email = "a.sofimahmudi@gmail.com")
+Description: Implements the Network Meta-Interpolation (NMI) methodology
+    for addressing effect modification in network meta-analysis using subgroup
+    analyses. The method interpolates treatment effects at desired covariate
+    levels using individual patient data and aggregate data. Based on the
+    method described in Harari et al. (2023) "Network meta-interpolation:
+    Effect modification adjustment in network meta-analysis using subgroup
+    analyses".
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 3.5.0)
+Imports: 
+    dplyr,
+    tibble,
+    multinma,
+    ggplot2,
+    reshape2,
+    lemon,
+    kableExtra,
+    plotly,
+    tidyr,
+    purrr,
+    stats,
+    posterior,
+    bayesplot,
+    broom,
+    broom.mixed,
+    utils,
+    htmltools,
+    base64enc,
+    jsonlite
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    shiny,
+    shinydashboard,
+    shinyWidgets,
+    DT,
+    shinycssloaders,
+    cmdstanr,
+    rstan
+Config/testthat/edition: 3
+VignetteBuilder: knitr

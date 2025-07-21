@@ -1,0 +1,731 @@
+---
+title: "Advanced NMI Workflows and Use Cases"
+author: "NMI Package Authors"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Advanced NMI Workflows and Use Cases}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = FALSE
+)
+```
+
+## Introduction
+
+This vignette demonstrates advanced workflows and use cases for the **nmi** package, including complex scenarios, optimization strategies, and integration with other analysis frameworks.
+
+## Advanced Analysis Workflows
+
+### Multi-Outcome Analysis
+
+Analyze multiple outcomes within the same network:
+
+```{r multi-outcome}
+library(nmi)
+
+# Load data
+data(Example_IPD)
+data(Example_AgD_NMI)
+
+# Define multiple outcomes
+outcomes <- list(
+  primary = list(
+    ipd_col = "Y",
+    agd_col = "TE",
+    se_col = "se",
+    type = "binary"
+  ),
+  secondary = list(
+    ipd_col = "Y2",      # Assume additional outcome
+    agd_col = "TE2", 
+    se_col = "se2",
+    type = "continuous"
+  )
+)
+
+# Analyze each outcome
+results_list <- list()
+
+for (outcome_name in names(outcomes)) {
+  outcome_spec <- outcomes[[outcome_name]]
+  
+  cat("Analyzing outcome:", outcome_name, "\n")
+  
+  results_list[[outcome_name]] <- nmi_full_analysis(
+    IPD = Example_IPD,
+    AgD = Example_AgD_NMI,
+    x_vect = c(0.6, 0.4),
+    AgD_EM_cols = c("x1", "x2"),
+    IPD_EM_cols = c("x1", "x2"),
+    IPD_treatment_col = "Tr",
+    AgD_treatment_cols = c("Trt1", "Trt2"),
+    IPD_outcome_col = outcome_spec$ipd_col,
+    AgD_TE_col = outcome_spec$agd_col,
+    AgD_SE_col = outcome_spec$se_col,
+    AgD_study_col = "Study",
+    study_sample_sizes = rep(300, 6),
+    outcome_type = outcome_spec$type
+  )
+  
+  # Generate report for each outcome
+  generate_nmi_html_report(
+    nmi_results = results_list[[outcome_name]],
+    study_name = "MultiOutcome_Study",
+    outcome = outcome_name,
+    report_title = paste("NMI Analysis:", outcome_name, "outcome")
+  )
+}
+```
+
+### Sensitivity Analysis
+
+Perform sensitivity analyses across different parameter values:
+
+```{r sensitivity-analysis}
+# Define sensitivity parameters
+target_values_list <- list(
+  scenario_1 = c(0.5, 0.3),
+  scenario_2 = c(0.6, 0.4),
+  scenario_3 = c(0.7, 0.5)
+)
+
+mcmc_settings_list <- list(
+  conservative = list(n_iter = 4000, n_warmup = 2000, n_chains = 4, adapt_delta = 0.95),
+  standard = list(n_iter = 2000, n_warmup = 1000, n_chains = 2, adapt_delta = 0.8),
+  quick = list(n_iter = 1000, n_warmup = 500, n_chains = 2, adapt_delta = 0.8)
+)
+
+# Run sensitivity analysis
+sensitivity_results <- list()
+
+for (scenario in names(target_values_list)) {
+  for (mcmc_setting in names(mcmc_settings_list)) {
+    
+    analysis_name <- paste(scenario, mcmc_setting, sep = "_")
+    cat("Running sensitivity analysis:", analysis_name, "\n")
+    
+    sensitivity_results[[analysis_name]] <- nmi_full_analysis(
+      IPD = Example_IPD,
+      AgD = Example_AgD_NMI,
+      x_vect = target_values_list[[scenario]],
+      AgD_EM_cols = c("x1", "x2"),
+      IPD_EM_cols = c("x1", "x2"),
+      IPD_treatment_col = "Tr",
+      AgD_treatment_cols = c("Trt1", "Trt2"),
+      IPD_outcome_col = "Y",
+      AgD_TE_col = "TE",
+      AgD_SE_col = "se",
+      AgD_study_col = "Study",
+      study_sample_sizes = rep(300, 6),
+      outcome_type = "binary",
+      mcmc_settings = mcmc_settings_list[[mcmc_setting]]
+    )
+    
+    # Generate report
+    generate_nmi_html_report(
+      nmi_results = sensitivity_results[[analysis_name]],
+      study_name = "Sensitivity_Analysis",
+      outcome = analysis_name,
+      report_title = paste("Sensitivity Analysis:", analysis_name)
+    )
+  }
+}
+```
+
+### Cross-Validation Workflow
+
+Implement cross-validation for model validation:
+
+```{r cross-validation}
+# Cross-validation function
+perform_cv_nmi <- function(ipd_data, agd_data, k_folds = 5) {
+  
+  # Split IPD data into folds
+  n_ipd <- nrow(ipd_data)
+  fold_indices <- sample(rep(1:k_folds, length.out = n_ipd))
+  
+  cv_results <- list()
+  
+  for (fold in 1:k_folds) {
+    cat("Processing fold", fold, "of", k_folds, "\n")
+    
+    # Split data
+    train_ipd <- ipd_data[fold_indices != fold, ]
+    test_ipd <- ipd_data[fold_indices == fold, ]
+    
+    # Train model
+    nmi_model <- nmi_full_analysis(
+      IPD = train_ipd,
+      AgD = agd_data,
+      x_vect = c(0.6, 0.4),
+      AgD_EM_cols = c("x1", "x2"),
+      IPD_EM_cols = c("x1", "x2"),
+      IPD_treatment_col = "Tr",
+      AgD_treatment_cols = c("Trt1", "Trt2"),
+      IPD_outcome_col = "Y",
+      AgD_TE_col = "TE",
+      AgD_SE_col = "se",
+      AgD_study_col = "Study",
+      study_sample_sizes = rep(300, 6),
+      outcome_type = "binary"
+    )
+    
+    # Store results
+    cv_results[[fold]] <- list(
+      model = nmi_model,
+      test_data = test_ipd,
+      train_size = nrow(train_ipd),
+      test_size = nrow(test_ipd)
+    )
+  }
+  
+  return(cv_results)
+}
+
+# Run cross-validation
+cv_results <- perform_cv_nmi(Example_IPD, Example_AgD_NMI)
+
+# Summarize CV results
+cv_summary <- function(cv_results) {
+  # Extract performance metrics
+  # Implementation depends on specific validation criteria
+  cat("Cross-validation completed for", length(cv_results), "folds\n")
+  for (i in seq_along(cv_results)) {
+    cat("Fold", i, ": Train =", cv_results[[i]]$train_size, 
+        ", Test =", cv_results[[i]]$test_size, "\n")
+  }
+}
+
+cv_summary(cv_results)
+```
+
+## Optimization Strategies
+
+### Performance Optimization
+
+```{r performance-optimization}
+# Optimize for large datasets
+optimize_for_large_data <- function(ipd_data, agd_data) {
+  
+  # Pre-process data
+  cat("Preprocessing data...\n")
+  
+  # Remove unnecessary columns
+  ipd_minimal <- ipd_data[, c("Tr", "Y", "x1", "x2")]
+  agd_minimal <- agd_data[, c("Study", "Trt1", "Trt2", "x1", "x2", "TE", "se")]
+  
+  # Optimize MCMC settings for speed
+  fast_mcmc <- list(
+    n_iter = 1000,
+    n_warmup = 500,
+    n_chains = 2,
+    adapt_delta = 0.8,
+    max_treedepth = 10
+  )
+  
+  # Run analysis
+  nmi_results <- nmi_full_analysis(
+    IPD = ipd_minimal,
+    AgD = agd_minimal,
+    x_vect = c(0.6, 0.4),
+    AgD_EM_cols = c("x1", "x2"),
+    IPD_EM_cols = c("x1", "x2"),
+    IPD_treatment_col = "Tr",
+    AgD_treatment_cols = c("Trt1", "Trt2"),
+    IPD_outcome_col = "Y",
+    AgD_TE_col = "TE",
+    AgD_SE_col = "se",
+    AgD_study_col = "Study",
+    study_sample_sizes = rep(300, nrow(agd_minimal)),
+    outcome_type = "binary",
+    mcmc_settings = fast_mcmc
+  )
+  
+  return(nmi_results)
+}
+```
+
+### Memory Management
+
+```{r memory-management}
+# Memory-efficient analysis
+memory_efficient_nmi <- function(data_list, chunk_size = 1000) {
+  
+  # Process data in chunks
+  results_list <- list()
+  n_chunks <- ceiling(nrow(data_list$ipd) / chunk_size)
+  
+  for (chunk in 1:n_chunks) {
+    start_idx <- (chunk - 1) * chunk_size + 1
+    end_idx <- min(chunk * chunk_size, nrow(data_list$ipd))
+    
+    cat("Processing chunk", chunk, "of", n_chunks, "\n")
+    
+    # Extract chunk
+    ipd_chunk <- data_list$ipd[start_idx:end_idx, ]
+    
+    # Run analysis on chunk
+    chunk_results <- nmi_full_analysis(
+      IPD = ipd_chunk,
+      AgD = data_list$agd,
+      x_vect = c(0.6, 0.4),
+      # ... other parameters ...
+      mcmc_settings = list(n_iter = 500, n_warmup = 250, n_chains = 1)
+    )
+    
+    # Store essential results only
+    results_list[[chunk]] <- list(
+      interpolation = chunk_results$nmi_interpolation$Final,
+      treatment_effects = chunk_results$nma_results$BUGSoutput$summary
+    )
+    
+    # Clean up
+    rm(chunk_results)
+    gc()  # Force garbage collection
+  }
+  
+  return(results_list)
+}
+```
+
+## Integration with Other Packages
+
+### Integration with multinma
+
+```{r multinma-integration}
+# Compare NMI with multinma package
+library(multinma)
+
+compare_with_multinma <- function(ipd_data, agd_data) {
+  
+  # Prepare data for multinma
+  ipd_network <- set_ipd(
+    ipd_data,
+    study = Study,
+    trt = Tr,
+    r = Y
+  )
+  
+  agd_network <- set_agd_arm(
+    agd_data,
+    study = Study,
+    trt = Trt1,  # Simplified for demonstration
+    r = TE,
+    se = se
+  )
+  
+  # Combine networks
+  combined_network <- combine_network(ipd_network, agd_network)
+  
+  # Add integration points
+  integrated_network <- add_integration(
+    combined_network,
+    x1 = distr(qbern, prob = 0.6),
+    x2 = distr(qbern, prob = 0.4)
+  )
+  
+  # Run multinma analysis
+  multinma_results <- nma(
+    integrated_network,
+    likelihood = "bernoulli2",
+    link = "logit",
+    trt_effects = "random"
+  )
+  
+  # Run NMI analysis
+  nmi_results <- nmi_full_analysis(
+    IPD = ipd_data,
+    AgD = agd_data,
+    x_vect = c(0.6, 0.4),
+    # ... parameters ...
+  )
+  
+  # Compare results
+  comparison <- list(
+    multinma = multinma_results,
+    nmi = nmi_results
+  )
+  
+  return(comparison)
+}
+```
+
+### Integration with netmeta
+
+```{r netmeta-integration}
+# Integration with netmeta package
+library(netmeta)
+
+compare_with_netmeta <- function(agd_data) {
+  
+  # Prepare data for netmeta
+  netmeta_data <- agd_data[, c("Study", "Trt1", "Trt2", "TE", "se")]
+  
+  # Run network meta-analysis with netmeta
+  netmeta_results <- netmeta(
+    TE = TE,
+    seTE = se,
+    treat1 = Trt1,
+    treat2 = Trt2,
+    studlab = Study,
+    data = netmeta_data,
+    sm = "OR",
+    comb.fixed = TRUE,
+    comb.random = TRUE
+  )
+  
+  # Run standard NMA with nmi package
+  nmi_standard <- nmi_standard_nma(
+    AgD = agd_data,
+    outcome_type = "binary"
+  )
+  
+  # Compare results
+  comparison <- list(
+    netmeta = netmeta_results,
+    nmi_standard = nmi_standard
+  )
+  
+  return(comparison)
+}
+```
+
+## Real-World Use Cases
+
+### Pharmaceutical Development
+
+```{r pharma-workflow}
+# Pharmaceutical development workflow
+pharma_nmi_workflow <- function(study_data, regulatory_requirements) {
+  
+  # Phase 1: Exploratory analysis
+  exploratory_results <- nmi_full_analysis(
+    IPD = study_data$phase2_ipd,
+    AgD = study_data$external_agd,
+    x_vect = regulatory_requirements$target_population,
+    # ... parameters ...
+    mcmc_settings = list(n_iter = 4000, n_warmup = 2000, n_chains = 4)
+  )
+  
+  # Generate regulatory report
+  generate_nmi_html_report(
+    nmi_results = exploratory_results,
+    study_name = "Phase2_Exploratory",
+    outcome = "Primary_Efficacy",
+    report_title = "Exploratory NMI Analysis for Regulatory Submission",
+    author_name = "Clinical Statistics Team",
+    organization = "Pharmaceutical Company"
+  )
+  
+  # Phase 2: Confirmatory analysis
+  confirmatory_results <- nmi_full_analysis(
+    IPD = study_data$phase3_ipd,
+    AgD = study_data$all_external_agd,
+    x_vect = regulatory_requirements$target_population,
+    # ... parameters ...
+    mcmc_settings = list(n_iter = 6000, n_warmup = 3000, n_chains = 4)
+  )
+  
+  # Generate final regulatory report
+  generate_nmi_html_report(
+    nmi_results = confirmatory_results,
+    study_name = "Phase3_Confirmatory",
+    outcome = "Primary_Efficacy",
+    report_title = "Confirmatory NMI Analysis for Marketing Authorization",
+    author_name = "Clinical Statistics Team",
+    organization = "Pharmaceutical Company"
+  )
+  
+  return(list(
+    exploratory = exploratory_results,
+    confirmatory = confirmatory_results
+  ))
+}
+```
+
+### Health Technology Assessment
+
+```{r hta-workflow}
+# Health Technology Assessment workflow
+hta_nmi_workflow <- function(intervention_data, comparator_data, economic_data) {
+  
+  # Clinical effectiveness analysis
+  effectiveness_results <- nmi_full_analysis(
+    IPD = intervention_data$clinical_ipd,
+    AgD = comparator_data$clinical_agd,
+    x_vect = economic_data$target_population_characteristics,
+    # ... parameters ...
+  )
+  
+  # Safety analysis
+  safety_results <- nmi_full_analysis(
+    IPD = intervention_data$safety_ipd,
+    AgD = comparator_data$safety_agd,
+    x_vect = economic_data$target_population_characteristics,
+    outcome_type = "count",  # Adverse events
+    # ... parameters ...
+  )
+  
+  # Generate HTA submission reports
+  for (outcome in c("effectiveness", "safety")) {
+    results <- if(outcome == "effectiveness") effectiveness_results else safety_results
+    
+    generate_nmi_html_report(
+      nmi_results = results,
+      study_name = "HTA_Submission",
+      outcome = outcome,
+      report_title = paste("HTA Network Meta-Interpolation:", toupper(outcome)),
+      author_name = "Health Economics Team",
+      organization = "HTA Agency"
+    )
+  }
+  
+  return(list(
+    effectiveness = effectiveness_results,
+    safety = safety_results
+  ))
+}
+```
+
+### Academic Research
+
+```{r academic-workflow}
+# Academic research workflow
+academic_nmi_workflow <- function(research_question, available_data) {
+  
+  # Multiple research scenarios
+  scenarios <- list(
+    conservative = c(0.5, 0.5),
+    moderate = c(0.6, 0.4),
+    optimistic = c(0.7, 0.3)
+  )
+  
+  # Results container
+  research_results <- list()
+  
+  for (scenario_name in names(scenarios)) {
+    
+    # Run analysis
+    research_results[[scenario_name]] <- nmi_full_analysis(
+      IPD = available_data$ipd,
+      AgD = available_data$agd,
+      x_vect = scenarios[[scenario_name]],
+      # ... parameters ...
+    )
+    
+    # Generate academic report
+    generate_nmi_html_report(
+      nmi_results = research_results[[scenario_name]],
+      study_name = "Academic_Research",
+      outcome = scenario_name,
+      report_title = paste("Academic NMI Research:", scenario_name, "scenario"),
+      author_name = "Research Team",
+      organization = "University"
+    )
+  }
+  
+  # Comparative analysis across scenarios
+  comparative_summary <- compare_scenarios(research_results)
+  
+  return(list(
+    individual_results = research_results,
+    comparative_summary = comparative_summary
+  ))
+}
+
+# Helper function for scenario comparison
+compare_scenarios <- function(results_list) {
+  # Extract key metrics from each scenario
+  comparison_table <- data.frame()
+  
+  for (scenario in names(results_list)) {
+    if (!is.null(results_list[[scenario]]$nma_results$BUGSoutput)) {
+      summary_data <- results_list[[scenario]]$nma_results$BUGSoutput$summary
+      
+      # Extract treatment effects
+      d_effects <- summary_data[grep("^d_raw", rownames(summary_data)), "mean"]
+      
+      # Create summary row
+      summary_row <- data.frame(
+        scenario = scenario,
+        n_treatments = length(d_effects) + 1,
+        mean_effect = mean(d_effects),
+        max_rhat = max(summary_data[, "Rhat"], na.rm = TRUE)
+      )
+      
+      comparison_table <- rbind(comparison_table, summary_row)
+    }
+  }
+  
+  return(comparison_table)
+}
+```
+
+## Quality Assurance
+
+### Validation Framework
+
+```{r validation-framework}
+# Comprehensive validation framework
+validate_nmi_analysis <- function(nmi_results, validation_criteria) {
+  
+  validation_report <- list()
+  
+  # 1. Convergence validation
+  if (!is.null(nmi_results$nma_results$BUGSoutput)) {
+    summary_data <- nmi_results$nma_results$BUGSoutput$summary
+    
+    max_rhat <- max(summary_data[, "Rhat"], na.rm = TRUE)
+    min_ess <- min(summary_data[, "n.eff"], na.rm = TRUE)
+    
+    validation_report$convergence <- list(
+      passed = max_rhat < 1.1 && min_ess > 100,
+      max_rhat = max_rhat,
+      min_ess = min_ess
+    )
+  }
+  
+  # 2. Interpolation validation
+  diagnostics <- nmi_results$nmi_interpolation$Diagnostics
+  
+  # Calculate R-squared for interpolation fit
+  r_squared <- cor(diagnostics$TE_orig, diagnostics$TE_pred)^2
+  
+  validation_report$interpolation <- list(
+    passed = r_squared > validation_criteria$min_r_squared,
+    r_squared = r_squared
+  )
+  
+  # 3. Data quality validation
+  final_data <- nmi_results$nmi_interpolation$Final
+  
+  validation_report$data_quality <- list(
+    passed = !any(is.na(final_data$TE)) && !any(is.na(final_data$se)),
+    missing_te = sum(is.na(final_data$TE)),
+    missing_se = sum(is.na(final_data$se))
+  )
+  
+  # Overall validation status
+  validation_report$overall_passed <- all(sapply(validation_report, function(x) x$passed))
+  
+  return(validation_report)
+}
+
+# Use validation framework
+validation_criteria <- list(
+  min_r_squared = 0.8,
+  max_rhat = 1.1,
+  min_ess = 100
+)
+
+# Example usage
+# validation_results <- validate_nmi_analysis(nmi_results, validation_criteria)
+```
+
+### Automated Quality Checks
+
+```{r automated-qa}
+# Automated quality assurance
+automated_qa_pipeline <- function(data_inputs, analysis_parameters) {
+  
+  qa_results <- list()
+  
+  # Pre-analysis checks
+  qa_results$pre_analysis <- list(
+    ipd_complete = !any(is.na(data_inputs$ipd)),
+    agd_complete = !any(is.na(data_inputs$agd)),
+    sample_sizes_reasonable = all(analysis_parameters$study_sample_sizes > 10)
+  )
+  
+  # Run analysis only if pre-checks pass
+  if (all(unlist(qa_results$pre_analysis))) {
+    
+    nmi_results <- nmi_full_analysis(
+      IPD = data_inputs$ipd,
+      AgD = data_inputs$agd,
+      x_vect = analysis_parameters$target_values,
+      # ... other parameters ...
+    )
+    
+    # Post-analysis checks
+    qa_results$post_analysis <- validate_nmi_analysis(
+      nmi_results, 
+      validation_criteria = list(min_r_squared = 0.7, max_rhat = 1.1, min_ess = 100)
+    )
+    
+    # Generate report only if all checks pass
+    if (qa_results$post_analysis$overall_passed) {
+      report_file <- generate_nmi_html_report(
+        nmi_results = nmi_results,
+        study_name = "QA_Validated_Analysis",
+        outcome = "Primary"
+      )
+      qa_results$report_generated <- TRUE
+      qa_results$report_file <- report_file
+    } else {
+      qa_results$report_generated <- FALSE
+      qa_results$failure_reasons <- qa_results$post_analysis
+    }
+    
+    qa_results$nmi_results <- nmi_results
+    
+  } else {
+    qa_results$analysis_run <- FALSE
+    qa_results$failure_reasons <- qa_results$pre_analysis
+  }
+  
+  return(qa_results)
+}
+```
+
+## Best Practices Summary
+
+### Analysis Design
+
+1. **Define clear objectives** before analysis
+2. **Validate data quality** thoroughly
+3. **Choose appropriate target values** based on clinical relevance
+4. **Use adequate MCMC settings** for reliable inference
+5. **Perform sensitivity analyses** to assess robustness
+
+### Computational Efficiency
+
+1. **Optimize MCMC parameters** for your specific use case
+2. **Use parallel processing** when available
+3. **Monitor memory usage** for large datasets
+4. **Implement checkpointing** for long-running analyses
+5. **Clean up intermediate objects** to free memory
+
+### Quality Assurance
+
+1. **Implement automated validation** checks
+2. **Document all analysis decisions** thoroughly
+3. **Use version control** for reproducibility
+4. **Validate against known benchmarks** when possible
+5. **Report all relevant diagnostics** in publications
+
+### Reporting and Documentation
+
+1. **Generate reports immediately** after analysis
+2. **Use consistent naming conventions** across projects
+3. **Include sufficient detail** for reproducibility
+4. **Archive reports systematically** for future reference
+5. **Share methodology** with collaborators
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+``` 

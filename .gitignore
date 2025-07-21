@@ -1,0 +1,69 @@
+# R and RStudio files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Package build files
+*.tar.gz
+*.tgz
+/check/
+/revdep/
+
+# Miscellaneous development files
+miscellaneous/
+.claude/
+
+# Stan compilation files
+*.rds
+*_fit.rds
+
+# HTML reports and outputs
+/reports/
+*.html
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Log files
+*.log
+
+# Backup files
+*.backup
+*.bak
+
+# Development and simulation files
+*simulation*.R
+*sim_progress*.RData
+*simulation_results*.RData
+
+# Large data files
+*.png
+*.pdf
+*.jpeg
+*.jpg
+
+# Installation and build scripts (keep in miscellaneous)
+install_*.R
+install_*.sh
+install_*.bat
+build_*.R
+fix_*.R
+create_*.R
+
+# Documentation that's not part of package
+*guide.md
+*INSTALL*.md
+README_*.md

@@ -1,0 +1,225 @@
+---
+title: "Getting Started with Network Meta-Interpolation (NMI)"
+author: "NMI Package Authors"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Getting Started with Network Meta-Interpolation (NMI)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = FALSE
+)
+```
+
+## Introduction
+
+The **nmi** package implements Network Meta-Interpolation (NMI) methodology for addressing effect modification in network meta-analysis using subgroup analyses. This vignette provides a quick start guide to get you up and running with NMI.
+
+### What is Network Meta-Interpolation?
+
+Network Meta-Interpolation (NMI) is a statistical method that allows researchers to:
+
+- **Relax shared effect modification assumptions** in network meta-analysis
+- **Combine individual patient data (IPD) and aggregate data (AgD)** 
+- **Interpolate treatment effects** at specific covariate levels
+- **Handle effect modification** when treatment effects vary across patient subgroups
+
+The methodology was developed by Harari et al. (2023) and provides a principled approach to indirect treatment comparison when effect modification is present.
+
+## Installation
+
+### Prerequisites
+
+Before installing the NMI package, you need to install cmdstanr for Bayesian inference:
+
+```{r install-cmdstanr, eval=FALSE}
+# Install cmdstanr
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+
+# Install CmdStan backend
+library(cmdstanr)
+install_cmdstan()
+```
+
+### Install Dependencies
+
+```{r install-deps, eval=FALSE}
+install.packages(c(
+  "dplyr", "tibble", "ggplot2", "tidyr", "purrr", 
+  "lemon", "broom.mixed", "htmltools", "posterior", 
+  "bayesplot", "jsonlite", "kableExtra", "plotly", 
+  "multinma", "reshape2"
+))
+```
+
+### Install NMI Package
+
+```{r install-nmi, eval=FALSE}
+# Option 1: From local directory
+devtools::install_local("path/to/nmi")
+
+# Option 2: From tarball
+install.packages("nmi_1.0.0.tar.gz", repos = NULL, type = "source")
+```
+
+## Quick Start
+
+### Load the Package
+
+```{r load-package}
+library(nmi)
+```
+
+### Example Data
+
+The package includes example datasets:
+
+```{r example-data}
+# Load example data
+data(Example_IPD)
+data(Example_AgD_NMI)
+
+# Examine the data
+head(Example_IPD)
+head(Example_AgD_NMI)
+```
+
+### Basic NMI Analysis
+
+Here's a complete NMI analysis in just a few lines:
+
+```{r basic-analysis}
+# Define analysis parameters
+target_em_values <- c(0.6, 0.4)  # Target effect modifier values
+study_sample_sizes <- rep(300, 6)  # Sample sizes for each study
+
+# Run complete NMI analysis
+nmi_results <- nmi_full_analysis(
+  IPD = Example_IPD,
+  AgD = Example_AgD_NMI,
+  x_vect = target_em_values,
+  AgD_EM_cols = c("x1", "x2"),
+  IPD_EM_cols = c("x1", "x2"),
+  IPD_treatment_col = "Tr",
+  AgD_treatment_cols = c("Trt1", "Trt2"),
+  IPD_outcome_col = "Y",
+  AgD_TE_col = "TE",
+  AgD_SE_col = "se",
+  AgD_study_col = "Study",
+  study_sample_sizes = study_sample_sizes,
+  outcome_type = "binary"
+)
+```
+
+### Generate HTML Report
+
+```{r html-report}
+# Generate professional HTML report
+report_file <- generate_nmi_html_report(
+  nmi_results = nmi_results,
+  study_name = "Example_Study",
+  outcome = "Binary_Outcome",
+  report_title = "Example NMI Analysis",
+  author_name = "Your Name",
+  organization = "Your Institution"
+)
+
+# Report saved to: reports/Example_Study_Binary_Outcome_YYYYMMDD/...
+```
+
+## Understanding the Results
+
+### NMI Interpolation Results
+
+```{r examine-results}
+# Examine interpolated data
+head(nmi_results$nmi_interpolation$Final)
+
+# Check diagnostics
+head(nmi_results$nmi_interpolation$Diagnostics)
+```
+
+### Network Meta-Analysis Results
+
+```{r nma-results}
+# Treatment effect estimates
+if (!is.null(nmi_results$nma_results$BUGSoutput)) {
+  summary_data <- nmi_results$nma_results$BUGSoutput$summary
+  print(summary_data[grep("^d_raw", rownames(summary_data)), 
+                     c("mean", "sd", "2.5%", "97.5%", "Rhat")])
+}
+```
+
+### Convergence Diagnostics
+
+```{r convergence}
+# Check convergence
+if (!is.null(nmi_results$nma_results$BUGSoutput)) {
+  rhat_values <- nmi_results$nma_results$BUGSoutput$summary[, "Rhat"]
+  max_rhat <- max(rhat_values, na.rm = TRUE)
+  
+  if (max_rhat < 1.1) {
+    cat("✓ Good convergence (max R̂ =", round(max_rhat, 3), ")\n")
+  } else {
+    cat("⚠ Check convergence (max R̂ =", round(max_rhat, 3), ")\n")
+  }
+}
+```
+
+## Comparison with Standard NMA
+
+Compare NMI results with standard network meta-analysis:
+
+```{r standard-nma}
+# Run standard NMA for comparison
+standard_nma <- nmi_standard_nma(
+  AgD = Example_AgD_NMI,
+  outcome_type = "binary",
+  study_col = "Study",
+  trt_cols = c("Trt1", "Trt2"),
+  te_col = "TE",
+  se_col = "se"
+)
+```
+
+## Visualization
+
+### Diagnostic Plots
+
+```{r diagnostic-plots}
+# NMI interpolation diagnostic plot
+diagnostic_plot <- NMI_diagnostic_plot(nmi_results$nmi_interpolation)
+print(diagnostic_plot)
+
+# Interactive version
+interactive_plot <- NMI_diagnostic_plotly(nmi_results$nmi_interpolation)
+interactive_plot
+```
+
+## Next Steps
+
+- **Advanced Usage**: See the "Advanced NMI Workflows" vignette
+- **cmdstanr Integration**: See the "Using cmdstanr with NMI" vignette  
+- **HTML Reporting**: See the "Professional HTML Reports" vignette
+- **Methodology**: See the "NMI Introduction" vignette for statistical details
+
+## References
+
+Harari, O., Abrams, K. R., Ren, S., Oluboyede, Y., & Sutton, A. J. (2023). Network meta-interpolation: Effect modification adjustment in network meta-analysis using subgroup analyses. *Journal of the Royal Statistical Society: Series A*.
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+``` 

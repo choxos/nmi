@@ -1,0 +1,368 @@
+---
+title: "Using cmdstanr with NMI: Modern Bayesian Inference"
+author: "NMI Package Authors"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Using cmdstanr with NMI: Modern Bayesian Inference}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = FALSE
+)
+```
+
+## Introduction
+
+The **nmi** package uses **cmdstanr** as its Bayesian inference backend, providing significant advantages over traditional approaches. This vignette explains the cmdstanr integration and how to optimize your NMI analyses.
+
+## Why cmdstanr?
+
+### Advantages of cmdstanr
+
+- **⚡ Performance**: 2-3x faster sampling than rstan
+- **🔧 Better diagnostics**: Enhanced R̂, ESS, and divergent transition warnings
+- **🔄 Parallel processing**: Automatic multi-core chain execution
+- **💾 Memory efficiency**: Lower memory usage for large models
+- **🛠 Modern toolchain**: Latest Stan features and improvements
+
+### From rstan to cmdstanr
+
+The NMI package has been updated to use cmdstanr while maintaining backward compatibility with existing workflows.
+
+## Installation and Setup
+
+### Installing cmdstanr
+
+```{r install-cmdstanr, eval=FALSE}
+# Install cmdstanr from Stan repository
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+
+# Load and install CmdStan backend
+library(cmdstanr)
+install_cmdstan()
+```
+
+### Verifying Installation
+
+```{r verify-installation}
+library(cmdstanr)
+
+# Check CmdStan version
+cmdstan_version()
+
+# Check toolchain
+check_cmdstan_toolchain()
+```
+
+### Troubleshooting Installation
+
+```{r troubleshooting}
+# If you encounter issues, try:
+install_cmdstan(cores = 2)  # Use fewer cores
+install_cmdstan(overwrite = TRUE)  # Force reinstall
+
+# Check installation path
+cmdstan_path()
+```
+
+## NMI with cmdstanr
+
+### Automatic Integration
+
+The NMI package automatically handles cmdstanr integration:
+
+```{r auto-integration}
+library(nmi)
+
+# cmdstanr is automatically used - no additional setup needed!
+nmi_results <- nmi_full_analysis(
+  IPD = Example_IPD,
+  AgD = Example_AgD_NMI,
+  x_vect = c(0.6, 0.4),
+  AgD_EM_cols = c("x1", "x2"),
+  IPD_EM_cols = c("x1", "x2"),
+  IPD_treatment_col = "Tr",
+  AgD_treatment_cols = c("Trt1", "Trt2"),
+  IPD_outcome_col = "Y",
+  AgD_TE_col = "TE",
+  AgD_SE_col = "se",
+  AgD_study_col = "Study",
+  study_sample_sizes = rep(300, 6),
+  outcome_type = "binary"
+)
+```
+
+### MCMC Settings
+
+Control cmdstanr behavior through MCMC settings:
+
+```{r mcmc-settings}
+# Customize MCMC parameters
+mcmc_settings <- list(
+  n_iter = 2000,         # Total iterations per chain
+  n_warmup = 1000,       # Warmup iterations
+  n_chains = 4,          # Number of chains (parallel)
+  adapt_delta = 0.95,    # Target acceptance rate
+  max_treedepth = 12     # Maximum tree depth
+)
+
+# Use in analysis
+nmi_results <- nmi_full_analysis(
+  IPD = Example_IPD,
+  AgD = Example_AgD_NMI,
+  x_vect = c(0.6, 0.4),
+  # ... other parameters ...
+  mcmc_settings = mcmc_settings
+)
+```
+
+### Performance Optimization
+
+#### Parallel Chains
+
+```{r parallel-chains}
+# Automatic parallel execution (recommended)
+mcmc_settings <- list(
+  n_chains = 4,          # 4 chains run in parallel
+  n_iter = 4000,         # More iterations for better estimates
+  n_warmup = 2000
+)
+```
+
+#### Memory Management
+
+```{r memory-management}
+# For large datasets, consider:
+mcmc_settings <- list(
+  n_chains = 2,          # Fewer chains for large models
+  n_iter = 2000,         # Sufficient for most analyses
+  adapt_delta = 0.8      # Standard setting
+)
+```
+
+## Convergence Diagnostics
+
+### Enhanced Diagnostics with cmdstanr
+
+```{r enhanced-diagnostics}
+# Check convergence automatically
+nmi_results <- nmi_full_analysis(...)
+
+# Extract diagnostics
+if (!is.null(nmi_results$nma_results$BUGSoutput)) {
+  summary_data <- nmi_results$nma_results$BUGSoutput$summary
+  
+  # R-hat values (should be < 1.1)
+  rhat_values <- summary_data[, "Rhat"]
+  max_rhat <- max(rhat_values, na.rm = TRUE)
+  
+  # Effective sample size
+  ess_values <- summary_data[, "n.eff"]
+  min_ess <- min(ess_values, na.rm = TRUE)
+  
+  cat("Maximum R̂:", round(max_rhat, 3), "\n")
+  cat("Minimum ESS:", round(min_ess, 0), "\n")
+  
+  # Convergence assessment
+  if (max_rhat < 1.1 && min_ess > 100) {
+    cat("✓ Good convergence\n")
+  } else {
+    cat("⚠ Check convergence\n")
+  }
+}
+```
+
+### Detailed Convergence Checking
+
+```{r detailed-convergence}
+# Access the cmdstanr fit object directly
+cmdstan_fit <- nmi_results$nma_results$cmdstan_fit
+
+# Check sampling diagnostics
+cmdstan_fit$diagnostic_summary()
+
+# Check for divergent transitions
+sampler_diagnostics <- cmdstan_fit$sampler_diagnostics()
+divergent_transitions <- sum(sampler_diagnostics[,,"divergent__"])
+cat("Divergent transitions:", divergent_transitions, "\n")
+```
+
+## Advanced Usage
+
+### Custom Stan Models
+
+You can also use the Stan models directly:
+
+```{r custom-models}
+# Get the Stan model code
+model_code <- stan_nma_model("binary")
+cat(model_code)
+
+# Compile and use manually
+library(cmdstanr)
+model <- cmdstan_model(write_stan_file(model_code))
+
+# Prepare data
+stan_data <- list(
+  ns = 10,           # number of studies
+  nt = 3,            # number of treatments  
+  t = matrix(c(1,2), nrow=10, ncol=2),  # treatment indicators
+  y = rnorm(10),     # outcomes
+  se = rep(0.1, 10)  # standard errors
+)
+
+# Sample
+fit <- model$sample(data = stan_data, chains = 2)
+```
+
+### Multiple Outcome Types
+
+```{r multiple-outcomes}
+# Binary outcomes
+nmi_binary <- nmi_full_analysis(..., outcome_type = "binary")
+
+# Continuous outcomes  
+nmi_continuous <- nmi_full_analysis(..., outcome_type = "continuous")
+
+# Count outcomes
+nmi_count <- nmi_full_analysis(..., outcome_type = "count")
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### CmdStan Not Found
+
+```{r cmdstan-not-found}
+# If you see "CmdStan not found"
+library(cmdstanr)
+install_cmdstan()
+
+# Or specify path manually
+set_cmdstan_path("/path/to/cmdstan")
+```
+
+#### Compilation Errors
+
+```{r compilation-errors}
+# Check C++ toolchain
+check_cmdstan_toolchain()
+
+# Update cmdstanr
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+```
+
+#### Convergence Issues
+
+```{r convergence-issues}
+# If chains don't converge, try:
+mcmc_settings <- list(
+  n_iter = 4000,         # More iterations
+  n_warmup = 2000,       # Longer warmup
+  adapt_delta = 0.95,    # Higher target acceptance rate
+  max_treedepth = 12     # Deeper trees
+)
+```
+
+### Performance Tips
+
+#### For Large Datasets
+
+```{r large-datasets}
+# Reduce memory usage
+mcmc_settings <- list(
+  n_chains = 2,          # Fewer chains
+  n_iter = 1000,         # Fewer iterations initially
+  n_warmup = 500
+)
+```
+
+#### For Complex Models
+
+```{r complex-models}
+# Increase adaptation
+mcmc_settings <- list(
+  n_iter = 3000,
+  n_warmup = 1500,       # 50% warmup
+  adapt_delta = 0.9,     # Conservative sampling
+  max_treedepth = 12
+)
+```
+
+## Comparison with rstan
+
+### Performance Comparison
+
+| Feature | rstan | cmdstanr |
+|---------|-------|----------|
+| Speed | 1x | 2-3x faster |
+| Memory | Higher | Lower |
+| Diagnostics | Basic | Enhanced |
+| Parallel | Manual | Automatic |
+| Stan Version | Older | Latest |
+
+### Migration Benefits
+
+- **Automatic**: No code changes needed for basic usage
+- **Backward Compatible**: Existing workflows still work
+- **Enhanced Output**: Better diagnostics and warnings
+- **Future-Proof**: Active development and support
+
+## Best Practices
+
+### MCMC Settings
+
+```{r best-practices-mcmc}
+# Recommended settings for most analyses
+recommended_settings <- list(
+  n_iter = 2000,         # Good balance of speed/accuracy
+  n_warmup = 1000,       # 50% warmup
+  n_chains = 4,          # Parallel chains for diagnostics
+  adapt_delta = 0.8,     # Default, increase if divergences
+  max_treedepth = 10     # Default, increase if warnings
+)
+```
+
+### Convergence Monitoring
+
+```{r best-practices-convergence}
+# Always check convergence
+check_convergence <- function(nmi_results) {
+  if (!is.null(nmi_results$nma_results$BUGSoutput)) {
+    summary_data <- nmi_results$nma_results$BUGSoutput$summary
+    max_rhat <- max(summary_data[, "Rhat"], na.rm = TRUE)
+    min_ess <- min(summary_data[, "n.eff"], na.rm = TRUE)
+    
+    return(list(
+      converged = max_rhat < 1.1 && min_ess > 100,
+      max_rhat = max_rhat,
+      min_ess = min_ess
+    ))
+  }
+  return(NULL)
+}
+```
+
+## References
+
+- **cmdstanr documentation**: https://mc-stan.org/cmdstanr/
+- **Stan User's Guide**: https://mc-stan.org/docs/
+- **NMI Methodology**: Harari et al. (2023)
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+``` 

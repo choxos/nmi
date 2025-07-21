@@ -1,0 +1,467 @@
+---
+title: "Professional HTML Reports with NMI"
+author: "NMI Package Authors"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Professional HTML Reports with NMI}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = FALSE
+)
+```
+
+## Introduction
+
+The **nmi** package includes a comprehensive HTML reporting system that generates publication-ready reports for Network Meta-Interpolation analyses. This vignette demonstrates how to create, customize, and manage HTML reports.
+
+## Overview of HTML Reports
+
+### Key Features
+
+- **📊 Comprehensive Content**: Analysis overview, data summaries, results, and diagnostics
+- **🎨 Professional Styling**: Modern design with gradient backgrounds and responsive layout
+- **🗂 Organized Structure**: Timestamped directories and systematic file naming
+- **🔍 Interactive Elements**: Tabbed navigation, sortable tables, and hover effects
+- **📱 Responsive Design**: Works on desktop, tablet, and mobile devices
+
+### Report Sections
+
+1. **Overview**: Key metrics and analysis summary
+2. **Data Summary**: Input data characteristics
+3. **NMI Interpolation**: Interpolation results and diagnostics
+4. **NMA Results**: Network meta-analysis outcomes
+5. **Diagnostics**: Convergence and model diagnostics
+6. **Methods**: Methodology description
+
+## Basic HTML Report Generation
+
+### Simple Report
+
+```{r basic-report}
+library(nmi)
+
+# Run NMI analysis
+nmi_results <- nmi_full_analysis(
+  IPD = Example_IPD,
+  AgD = Example_AgD_NMI,
+  x_vect = c(0.6, 0.4),
+  AgD_EM_cols = c("x1", "x2"),
+  IPD_EM_cols = c("x1", "x2"),
+  IPD_treatment_col = "Tr",
+  AgD_treatment_cols = c("Trt1", "Trt2"),
+  IPD_outcome_col = "Y",
+  AgD_TE_col = "TE",
+  AgD_SE_col = "se",
+  AgD_study_col = "Study",
+  study_sample_sizes = rep(300, 6),
+  outcome_type = "binary"
+)
+
+# Generate basic HTML report
+report_file <- generate_nmi_html_report(nmi_results = nmi_results)
+```
+
+### Customized Report
+
+```{r customized-report}
+# Generate customized HTML report
+report_file <- generate_nmi_html_report(
+  nmi_results = nmi_results,
+  report_title = "Cardiovascular Treatment Network Meta-Interpolation",
+  author_name = "Dr. Jane Smith",
+  organization = "University Research Center",
+  study_name = "CardioNMI_2025",
+  outcome = "MACE_Primary",
+  include_data_tables = TRUE,
+  include_plots = TRUE
+)
+
+cat("Report saved to:", report_file, "\n")
+```
+
+## File Organization System
+
+### Directory Structure
+
+The HTML reporting system automatically creates organized directories:
+
+```
+reports/
+└── CardioNMI_2025_MACE_Primary_20250720/
+    └── CardioNMI_2025_MACE_Primary_20250720_143022.html
+```
+
+### Naming Convention
+
+- **Directory**: `[Study_Name]_[Outcome]_[Date]`
+- **File**: `[Study_Name]_[Outcome]_[Date]_[Time].html`
+- **Format**: YYYYMMDD for dates, HHMMSS for times (no hyphens)
+
+### Benefits
+
+- **No overwrites**: Each analysis gets a unique timestamp
+- **Easy organization**: Group by study and outcome
+- **Version control**: Track analysis history
+- **Batch processing**: Multiple analyses per day
+
+## Customization Options
+
+### Report Metadata
+
+```{r metadata-customization}
+generate_nmi_html_report(
+  nmi_results = nmi_results,
+  report_title = "My Custom NMI Analysis",           # Report title
+  author_name = "Research Team",                     # Author name  
+  organization = "Academic Medical Center",          # Institution
+  study_name = "STUDY2025",                         # Study identifier
+  outcome = "PrimaryEndpoint"                       # Outcome description
+)
+```
+
+### Content Control
+
+```{r content-control}
+generate_nmi_html_report(
+  nmi_results = nmi_results,
+  include_data_tables = TRUE,    # Include detailed data tables
+  include_plots = TRUE,          # Include diagnostic plots
+  output_file = "custom_name.html"  # Custom filename (optional)
+)
+```
+
+### Advanced Customization
+
+```{r advanced-customization}
+# Generate report with all customization options
+report_file <- generate_nmi_html_report(
+  nmi_results = nmi_results,
+  
+  # Report identification
+  report_title = "Network Meta-Interpolation for Treatment X vs Y vs Z",
+  author_name = "Principal Investigator",
+  organization = "Clinical Research Institute",
+  
+  # File organization  
+  study_name = "MultiCenter_RCT",
+  outcome = "Efficacy_Safety_Composite",
+  
+  # Content options
+  include_data_tables = TRUE,
+  include_plots = TRUE,
+  
+  # Optional custom output file
+  output_file = NULL  # Use automatic naming
+)
+```
+
+## Report Content Details
+
+### Overview Section
+
+The overview provides key analysis metrics:
+
+- **Network Structure**: Number of studies, treatments, comparisons
+- **Analysis Settings**: Outcome type, target EM values, effect modifiers
+- **Model Convergence**: R̂ values, chain diagnostics, iteration counts
+
+### Data Summary
+
+Comprehensive data description:
+
+- **Sample Sizes**: Study-level sample sizes
+- **Effect Modifiers**: Distribution and ranges
+- **Treatment Comparisons**: Available evidence
+- **Data Quality**: Missing data patterns
+
+### NMI Interpolation Results
+
+Detailed interpolation outcomes:
+
+- **Target Values**: Specified effect modifier levels
+- **Interpolated Effects**: Treatment effects at target levels
+- **Goodness of Fit**: Observed vs predicted diagnostics
+- **Interpolation Diagnostics**: Quality assessment
+
+### NMA Results
+
+Network meta-analysis findings:
+
+- **Treatment Effects**: Posterior summaries
+- **Credible Intervals**: Uncertainty quantification
+- **Ranking Probabilities**: Treatment comparisons
+- **Forest Plots**: Visual effect summaries
+
+### Diagnostics Section
+
+Model validation information:
+
+- **Convergence Diagnostics**: R̂, ESS, trace plots
+- **Posterior Predictive Checks**: Model adequacy
+- **Sensitivity Analyses**: Robustness assessment
+- **Assumptions**: Model assumption validation
+
+## Interactive Features
+
+### Navigation
+
+- **Tabbed Interface**: Easy section navigation
+- **Responsive Design**: Adapts to screen size
+- **Hover Effects**: Interactive visual feedback
+- **Smooth Transitions**: Professional appearance
+
+### Data Tables
+
+- **Sortable Columns**: Click headers to sort
+- **Search Functionality**: Find specific values
+- **Pagination**: Handle large datasets
+- **Responsive Layout**: Mobile-friendly tables
+
+### Plots and Charts
+
+- **Interactive Plots**: Zoom, pan, hover tooltips
+- **Publication Quality**: High-resolution graphics
+- **Consistent Styling**: Professional appearance
+- **Responsive Sizing**: Automatic scaling
+
+## Report Management
+
+### Batch Generation
+
+```{r batch-generation}
+# Generate reports for multiple analyses
+studies <- c("Study_A", "Study_B", "Study_C")
+outcomes <- c("Primary", "Secondary", "Safety")
+
+for (study in studies) {
+  for (outcome in outcomes) {
+    # Run analysis for each combination
+    nmi_results <- nmi_full_analysis(...)
+    
+    # Generate report
+    generate_nmi_html_report(
+      nmi_results = nmi_results,
+      study_name = study,
+      outcome = outcome,
+      report_title = paste("NMI Analysis:", study, "-", outcome)
+    )
+  }
+}
+```
+
+### Report Archival
+
+```{r report-archival}
+# List all generated reports
+report_dirs <- list.dirs("reports", recursive = FALSE)
+cat("Generated reports:\n")
+for (dir in report_dirs) {
+  cat("  -", basename(dir), "\n")
+}
+
+# Find reports for specific study
+study_reports <- list.files("reports", pattern = "Study_A_", 
+                           recursive = TRUE, full.names = TRUE)
+print(study_reports)
+```
+
+### Integration with Workflows
+
+```{r workflow-integration}
+# Complete analysis and reporting pipeline
+run_nmi_pipeline <- function(data_path, study_name, outcome_name) {
+  
+  # Load data
+  ipd_data <- read.csv(file.path(data_path, "ipd.csv"))
+  agd_data <- read.csv(file.path(data_path, "agd.csv"))
+  
+  # Run analysis
+  nmi_results <- nmi_full_analysis(
+    IPD = ipd_data,
+    AgD = agd_data,
+    # ... other parameters ...
+  )
+  
+  # Generate report
+  report_file <- generate_nmi_html_report(
+    nmi_results = nmi_results,
+    study_name = study_name,
+    outcome = outcome_name
+  )
+  
+  # Return both results and report path
+  return(list(
+    results = nmi_results,
+    report = report_file
+  ))
+}
+```
+
+## Best Practices
+
+### Naming Conventions
+
+```{r naming-conventions}
+# Use descriptive, consistent names
+study_name <- "TRIAL2025_Phase3"     # Clear study identifier
+outcome <- "MACE_6Month"             # Specific outcome with timeframe
+report_title <- "6-Month MACE Analysis: Phase 3 Trial 2025"  # Descriptive title
+```
+
+### Organization Strategy
+
+```{r organization-strategy}
+# Organize by project hierarchy
+generate_nmi_html_report(
+  nmi_results = nmi_results,
+  study_name = "ProjectName_StudyPhase_Analysis",
+  outcome = "PrimaryEndpoint_Timepoint",
+  author_name = "Analysis Team Lead",
+  organization = "Study Sponsor"
+)
+```
+
+### Quality Control
+
+```{r quality-control}
+# Always check results before reporting
+verify_results <- function(nmi_results) {
+  # Check convergence
+  if (!is.null(nmi_results$nma_results$BUGSoutput)) {
+    summary_data <- nmi_results$nma_results$BUGSoutput$summary
+    max_rhat <- max(summary_data[, "Rhat"], na.rm = TRUE)
+    
+    if (max_rhat > 1.1) {
+      warning("Poor convergence detected (R̂ = ", round(max_rhat, 3), ")")
+      return(FALSE)
+    }
+  }
+  
+  # Check interpolation quality
+  diagnostics <- nmi_results$nmi_interpolation$Diagnostics
+  # Add your specific checks here
+  
+  return(TRUE)
+}
+
+# Use in workflow
+if (verify_results(nmi_results)) {
+  generate_nmi_html_report(nmi_results = nmi_results)
+} else {
+  cat("Results failed quality checks. Review analysis before reporting.\n")
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Missing Dependencies
+
+```{r missing-dependencies}
+# Ensure all required packages are installed
+required_packages <- c("htmltools", "kableExtra", "jsonlite", "base64enc")
+missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
+
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages)
+}
+```
+
+#### File Permission Issues
+
+```{r file-permissions}
+# Check write permissions
+reports_dir <- "reports"
+if (!dir.exists(reports_dir)) {
+  dir.create(reports_dir, recursive = TRUE)
+}
+
+# Test write access
+test_file <- file.path(reports_dir, "test.txt")
+tryCatch({
+  writeLines("test", test_file)
+  file.remove(test_file)
+  cat("✓ Write permissions OK\n")
+}, error = function(e) {
+  cat("✗ Write permission error:", e$message, "\n")
+})
+```
+
+#### Large Reports
+
+```{r large-reports}
+# For very large datasets, consider:
+generate_nmi_html_report(
+  nmi_results = nmi_results,
+  include_data_tables = FALSE,  # Reduce size
+  include_plots = TRUE          # Keep essential visualizations
+)
+```
+
+## Integration Examples
+
+### R Markdown Integration
+
+```{r rmarkdown-integration, eval=FALSE}
+# In an R Markdown document:
+# ```{r}
+nmi_results <- nmi_full_analysis(...)
+report_file <- generate_nmi_html_report(nmi_results)
+# ```
+
+# Link to report:
+# [View HTML Report](`r report_file`)
+```
+
+### Shiny Integration
+
+```{r shiny-integration}
+# In a Shiny app:
+# server <- function(input, output, session) {
+#   
+#   # Generate report button
+#   observeEvent(input$generate_report, {
+#     
+#     # Run analysis
+#     nmi_results <- nmi_full_analysis(...)
+#     
+#     # Generate report
+#     report_file <- generate_nmi_html_report(
+#       nmi_results = nmi_results,
+#       study_name = input$study_name,
+#       outcome = input$outcome
+#     )
+#     
+#     # Provide download link
+#     output$download_link <- renderUI({
+#       tags$a("Download Report", href = report_file, download = basename(report_file))
+#     })
+#   })
+# }
+```
+
+## References
+
+- **HTML5 Standards**: W3C HTML5 Specification
+- **Responsive Design**: Bootstrap CSS Framework
+- **Interactive Tables**: DataTables jQuery Plugin
+- **NMI Methodology**: Harari et al. (2023)
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+``` 

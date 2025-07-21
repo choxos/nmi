@@ -1,0 +1,345 @@
+/* Custom CSS for NMI Shiny App */
+
+/* Main layout improvements */
+.content-wrapper {
+  background-color: #f8f9fa;
+}
+
+/* Custom box styling */
+.box {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.box-header {
+  border-radius: 8px 8px 0 0;
+}
+
+/* Button styling */
+.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+}
+
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+}
+
+/* Form controls */
+.form-control {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Navigation improvements */
+.sidebar-menu > li > a {
+  border-radius: 6px;
+  margin: 2px 8px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-menu > li.active > a {
+  background-color: #007bff;
+  color: white;
+}
+
+/* DataTable styling */
+.dataTables_wrapper {
+  margin-top: 20px;
+}
+
+.dataTables_filter input {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  padding: 8px 12px;
+}
+
+.dataTables_length select {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  padding: 4px 8px;
+}
+
+/* Progress bar styling */
+.progress {
+  height: 25px;
+  border-radius: 12px;
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  border-radius: 12px;
+  background-color: #007bff;
+  transition: width 0.6s ease;
+}
+
+/* Alert styling */
+.alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.alert-info {
+  background-color: #cce7ff;
+  color: #0c5460;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Panel styling */
+.panel {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.panel-heading {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 8px 8px 0 0;
+  padding: 15px;
+}
+
+.panel-body {
+  padding: 20px;
+}
+
+/* Tab styling */
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6;
+}
+
+.nav-tabs > li > a {
+  border-radius: 6px 6px 0 0;
+  margin-right: 5px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.nav-tabs > li.active > a {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Plotly container styling */
+.plotly {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  background-color: white;
+}
+
+/* Loading spinner */
+.shiny-spinner-output-container {
+  position: relative;
+}
+
+.load-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+p {
+  color: #5a6c7d;
+  line-height: 1.6;
+}
+
+/* Code blocks */
+pre {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+/* Lists */
+ul, ol {
+  color: #5a6c7d;
+}
+
+ul li, ol li {
+  margin-bottom: 5px;
+}
+
+/* Tables */
+.table {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f8f9fa;
+}
+
+.table th {
+  background-color: #e9ecef;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .box {
+    margin-bottom: 15px;
+  }
+  
+  .btn {
+    margin-bottom: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+}
+
+/* Animation classes */
+.fadeIn {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom notification styling */
+.shiny-notification {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  font-weight: 500;
+}
+
+.shiny-notification-message {
+  padding: 15px 20px;
+}
+
+/* Welcome section styling */
+.welcome-section {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.welcome-section h1 {
+  color: white;
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+.welcome-section p {
+  color: rgba(255,255,255,0.9);
+  font-size: 1.2em;
+  line-height: 1.6;
+}
+
+/* Feature cards */
+.feature-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.feature-icon {
+  font-size: 2em;
+  color: #007bff;
+  margin-bottom: 15px;
+}
+
+/* Status indicators */
+.status-indicator {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-info {
+  background-color: #cce7ff;
+  color: #0c5460;
+}
