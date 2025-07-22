@@ -59,7 +59,7 @@ The conceptual foundation of NMI rests on the principle that effect modification
 
 **Figure 1: Conceptual Framework of Network Meta-Interpolation**
 
-*[Figure 1 would show a flowchart illustrating how IPD and AgD are combined through interpolation to estimate treatment effects at target covariate values, with panels showing: (A) Traditional NMA approach, (B) NMI approach with effect modification, (C) Integration of data sources, and (D) Interpolation to target population]*
+The NMI framework combines individual patient data (IPD) and aggregate data (AgD) through sophisticated interpolation algorithms to estimate treatment effects at target covariate values, contrasting with traditional NMA that assumes constant treatment effects. This approach enables personalized treatment effect estimates while maintaining the network structure essential for indirect comparisons.
 
 Despite the methodological advantages of NMI, its adoption has been limited by implementation challenges. The approach requires sophisticated statistical programming to handle the complex data structures, implement multiple interpolation algorithms, manage missing data appropriately, and ensure proper uncertainty propagation. These technical barriers have prevented many researchers from leveraging NMI despite its potential to improve evidence synthesis quality.
 
@@ -122,7 +122,9 @@ where $I(\cdot)$ is an indicator function and $\text{Bin}_c$ represents optimall
 
 **Figure 2: Effect Modification Patterns Supported by the NMI Package**
 
-*[Figure 2 would show four panels: (A) Linear effect modification with straight-line relationships, (B) Non-linear spline-based interpolation with curved relationships, (C) Threshold effects with step changes, and (D) Mixed effect modification combining binary and continuous modifiers]*
+![Effect Modification Patterns](figures/figure2_effect_patterns.png)
+
+*Figure 2. Effect Modification Patterns Supported by the NMI Package. The package handles diverse effect modification relationships including linear patterns with constant slopes, non-linear patterns using spline-based interpolation, threshold effects with step changes, and mixed patterns combining multiple modifier types.*
 
 ### 2.3 Network Extensions for Complex Evidence Structures
 
@@ -337,9 +339,15 @@ Primary performance metrics included:
 
 *Values show mean absolute bias. Degradation = % increase from 0% to 30% missing.*
 
-**Figure 3: Missing Data Impact on Method Performance**
+**Figure 3: Impact of Missing Data on Method Performance**
 
-*[Figure 3 shows line plots demonstrating how bias increases with missing data percentage for each method, highlighting NMI's superior robustness through ML-based imputation]*
+![Bias vs Missing Data](figures/figure3a_bias_missing.png)
+
+![Coverage vs Missing Data](figures/figure3b_coverage_missing.png)
+
+*Figure 3A. Mean Absolute Bias vs Missing Data Percentage. NMI maintains superior performance through ML-based imputation while other methods show substantial degradation with complete case analysis.*
+
+*Figure 3B. Coverage Rate vs Missing Data Percentage. NMI demonstrates robust coverage probability even with substantial missing data, while traditional methods show marked deterioration.*
 
 **Key Findings:**
 - **NMI maintained excellent performance** even with 30% missing data due to sophisticated ML imputation
@@ -397,9 +405,15 @@ Primary performance metrics included:
 
 ### 4.10 Method Ranking Across Scenarios
 
-**Figure 4: Method Rankings by Scenario Type**
+**Figure 4: Method Performance by Effect Modification Pattern**
 
-*[Figure 4 shows comprehensive ranking plots demonstrating NMI's consistent #1 performance across different effect modification patterns, missing data levels, and network structures]*
+![Performance by Pattern](figures/figure4a_em_performance.png)
+
+![Method Rankings](figures/figure4b_method_rankings.png)
+
+*Figure 4A. Performance by Effect Modification Pattern. NMI consistently achieves the lowest bias across all effect modification types, while traditional NMA fails catastrophically when effect modification is present.*
+
+*Figure 4B. Method Rankings by Scenario. NMI consistently ranks first across all effect modification patterns, demonstrating superior adaptability to diverse analytical scenarios.*
 
 **Table 13: Average Method Rankings (1 = Best, 4 = Worst)**
 
@@ -479,9 +493,9 @@ The NMI analysis revealed substantial effect modification by baseline HbA1c, wit
 
 *Values represent mean HbA1c reduction (%) with 95% confidence intervals*
 
-**Figure 4: Treatment Effect Modification by Baseline HbA1c**
+**Figure 7: Treatment Effect Modification by Baseline HbA1c**
 
-*[Figure 4 would show: (A) Network diagram with treatment nodes and connections, (B) Effect modification curves for each treatment across HbA1c levels, (C) Treatment ranking changes across HbA1c spectrum, (D) Confidence intervals for effect estimates]*
+The diabetes treatment network analysis demonstrates substantial effect modification by baseline HbA1c levels, with treatment rankings changing dramatically across the glycemic control spectrum. This analysis showcases the clinical importance of accounting for effect modification in evidence synthesis.
 
 ### 5.4 Comparison with Traditional Approaches
 
@@ -531,9 +545,21 @@ The simulation study results have profound implications for evidence synthesis p
 
 The diabetes example, validated through our simulation framework, demonstrates how treatment selection should depend critically on baseline patient characteristics, with treatment rankings changing substantially across the glycemic spectrum - a finding that would be impossible to detect using traditional NMA approaches.
 
-**Figure 5: Clinical Decision-Making Framework Using NMI Results**
+**Figure 5: Overall Performance Comparison Across All Simulation Scenarios**
 
-*[Figure 5 would show a clinical decision tree incorporating baseline HbA1c levels to guide treatment selection based on NMI analysis results]*
+![Bias vs RMSE Trade-off](figures/figure5a_bias_rmse.png)
+
+![Performance Scores](figures/figure5b_performance_scores.png)
+
+*Figure 5A. Bias vs RMSE Trade-off. The scatter plot demonstrates NMI's superior position in the accuracy landscape, achieving both lower bias and lower RMSE compared to alternative methods.*
+
+*Figure 5B. Overall Performance Scores. Normalized performance metrics across bias, RMSE, coverage, and computational speed demonstrate NMI's balanced excellence across all evaluation criteria.*
+
+**Figure 6: Comprehensive Performance Assessment**
+
+![Performance Heatmap](figures/figure6_performance_heatmap.png)
+
+*Figure 6. Comprehensive Performance Heatmap. Higher scores (greener colors) indicate better performance across all metrics, with NMI showing consistent excellence across the evaluation framework.*
 
 ### 6.3 Limitations and Future Directions
 

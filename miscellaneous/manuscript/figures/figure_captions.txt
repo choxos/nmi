@@ -1,0 +1,17 @@
+
+Figure 2. Effect Modification Patterns Supported by the NMI Package. The package handles diverse effect modification relationships including linear patterns with constant slopes, non-linear patterns using spline-based interpolation, threshold effects with step changes, and mixed patterns combining multiple modifier types.
+
+Figure 3A. Mean Absolute Bias vs Missing Data Percentage. NMI maintains superior performance through ML-based imputation while other methods show substantial degradation with complete case analysis.
+
+Figure 3B. Coverage Rate vs Missing Data Percentage. NMI demonstrates robust coverage probability even with substantial missing data, while traditional methods show marked deterioration.
+
+Figure 4A. Performance by Effect Modification Pattern. NMI consistently achieves the lowest bias across all effect modification types, while traditional NMA fails catastrophically when effect modification is present.
+
+Figure 4B. Method Rankings by Scenario. NMI consistently ranks first across all effect modification patterns, demonstrating superior adaptability to diverse analytical scenarios.
+
+Figure 5A. Bias vs RMSE Trade-off. The scatter plot demonstrates NMI's superior position in the accuracy landscape, achieving both lower bias and lower RMSE compared to alternative methods.
+
+Figure 5B. Overall Performance Scores. Normalized performance metrics across bias, RMSE, coverage, and computational speed demonstrate NMI's balanced excellence across all evaluation criteria.
+
+Figure 6. Comprehensive Performance Heatmap. Higher scores (greener colors) indicate better performance across all metrics, with NMI showing consistent excellence across the evaluation framework.
+
